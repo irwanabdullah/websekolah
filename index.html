@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPT SPF SMPN 13 Makassar</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2990/2990638.png" type="image/png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; }
+        .navbar { background: #003366 !important; transition: 0.3s; }
+        .nav-link { color: rgba(255,255,255,0.8) !important; margin: 0 5px; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { color: #ffcc00 !important; }
+        
+        /* Hero */
+        .carousel-item { height: 90vh; min-height: 400px; }
+        .carousel-item img { object-fit: cover; height: 100%; filter: brightness(0.5); }
+        .hero-caption { bottom: 35%; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        /* General Section */
+        .section-padding { padding: 80px 0; }
+        .section-title { font-weight: 800; color: #003366; margin-bottom: 50px; text-transform: uppercase; letter-spacing: 1px; position: relative; display: inline-block; }
+        .section-title::after { content: ''; width: 60px; height: 4px; background: #ffcc00; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); }
+        
+        /* Profil */
+        .kepsek-img { width: 100%; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); border-bottom: 5px solid #ffcc00; }
+        .nav-pills .nav-link { color: #003366; background: white; border: 1px solid #dee2e6; margin-right: 5px; border-radius: 50px; padding: 10px 25px; }
+        .nav-pills .nav-link.active { background: #003366; color: #ffcc00; border-color: #003366; }
+
+        /* Sarana */
+        .sarana-card { overflow: hidden; border-radius: 15px; position: relative; height: 100%; }
+        .sarana-card img { transition: 0.5s; width: 100%; height: 250px; object-fit: cover; }
+        .sarana-card:hover img { transform: scale(1.1); }
+        .sarana-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: white; padding: 15px; transform: translateY(100%); transition: 0.3s; }
+        .sarana-card:hover .sarana-overlay { transform: translateY(0); }
+
+        /* Ekskul */
+        .ekskul-box { background: white; padding: 30px; border-radius: 15px; text-align: center; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-bottom: 4px solid transparent; height: 100%; }
+        .ekskul-box:hover { transform: translateY(-10px); border-bottom-color: #ffcc00; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .ekskul-icon { font-size: 3.5rem; color: #003366; margin-bottom: 20px; }
+
+        /* Pengajar */
+        .teacher-img { width: 150px; height: 150px; object-fit: cover; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: 0.3s; }
+        .card-hover:hover .teacher-img { transform: scale(1.05); border-color: #ffcc00; }
+
+        /* Footer */
+        footer { background: #002244; color: white; }
+        .social-icon { width: 40px; height: 40px; line-height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: inline-block; color: white; margin-right: 10px; transition: 0.3s; }
+        .social-icon:hover { background: #ffcc00; color: #003366; }
+        
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: 0.3s; }
+
+        /* Navigation Buttons */
+        .btn-nav { width: 45px; height: 45px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Map Style */
+        #map { height: 100%; min-height: 450px; border-radius: 0 0 15px 0; }
+        @media (max-width: 991px) { #map { border-radius: 0 0 15px 15px; min-height: 300px; } }
+    </style>
+</head>
+<body>
+    <script>const API_URL = "https://script.google.com/macros/s/AKfycbzaiaxPcTEgA3CBfUdti4Yeu9E-OZPn8aICfRd-1L5x_23OlITy7BQ4VeA_LZxc9b1hbg/exec";</script>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <img src="https://cdn-icons-png.flaticon.com/512/2990/2990638.png" width="30" height="30" class="d-inline-block align-top me-2" alt="">
+                SMPN 13 MAKASSAR
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto small fw-bold text-uppercase">
+                    <li class="nav-item"><a class="nav-link active" href="#beranda">Beranda</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Profil</a>
+                        <ul class="dropdown-menu border-0 shadow">
+                            <li><a class="dropdown-item" href="#profil">Kata Sambutan</a></li>
+                            <li><a class="dropdown-item" href="#profil">Visi & Misi</a></li>
+                            <li><a class="dropdown-item" href="#profil">Kurikulum</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Layanan</a>
+                        <ul class="dropdown-menu border-0 shadow">
+                            <li><a class="dropdown-item" href="#">Layanan Guru</a></li>
+                            <li><a class="dropdown-item" href="#">Layanan Siswa</a></li>
+                            <li><a class="dropdown-item" href="#">Layanan Orang Tua</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#sarana">Sarana</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#ekskul">Ekskul</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#agenda">Agenda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#berita">Berita</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-warning text-dark ms-2 px-3 rounded-pill" href="#kontak">Hubungi</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section id="beranda" class="p-0">
+        <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1920&q=80" class="d-block w-100" alt="Sekolah">
+                    <div class="carousel-caption hero-caption">
+                        <h1 class="display-3 fw-bold">UPT SPF SMP 13 Makassar</h1>
+                        <p class="lead">Mencetak Generasi Cerdas, Berkarakter, dan Berprestasi.</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="https://images.unsplash.com/photo-1761479146876-503ee6a64344?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="d-block w-100" alt="Belajar">
+                    <div class="carousel-caption hero-caption">
+                        <h1 class="display-3 fw-bold">Lingkungan Asri</h1>
+                        <p class="lead">Suasana belajar yang nyaman, hijau, dan kondusif.</p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="d-block w-100" alt="Perpus">
+                    <div class="carousel-caption hero-caption">
+                        <h1 class="display-3 fw-bold">Fasilitas Lengkap</h1>
+                        <p class="lead">Laboratorium, Perpustakaan, dan Sarana Olahraga Terbaik.</p>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+        </div>
+    </section>
+
+    <section id="profil" class="section-padding bg-white">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Profil Sekolah</h2>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-lg-4 mb-4 mb-lg-0 text-center">
+                    <img src="https://i.ibb.co.com/ZRH3VNmd/ramli.jpg" class="kepsek-img" alt="Kepala Sekolah">
+                    <h5 class="mt-3 fw-bold text-primary">Drs. Ramli, M.Pd</h5>
+                    <p class="text-muted small">Kepala Sekolah</p>
+                </div>
+                <div class="col-lg-8">
+                    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="pill" data-bs-target="#sambutan">Sambutan</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#visimisi">Visi & Misi</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="pill" data-bs-target="#kurikulum">Kurikulum</button></li>
+                    </ul>
+                    <div class="tab-content shadow-sm p-4 rounded bg-light border">
+                        <div class="tab-pane fade show active" id="sambutan">
+                            <h4 class="fw-bold mb-3">Selamat Datang di UPT SPF SMP 13 Makassar</h4>
+                            <p>Assalamu’alaikum Warahmatullahi Wabarakatuh.</p>
+                            <p>Puji syukur kita panjatkan ke hadirat Tuhan Yang Maha Esa. Website ini hadir sebagai media informasi resmi sekolah untuk masyarakat, orang tua, dan siswa. Kami berkomitmen untuk terus meningkatkan kualitas pendidikan.</p>
+                        </div>
+                        <div class="tab-pane fade" id="visimisi">
+                            <h5 class="fw-bold text-primary">Visi</h5>
+                            <p class="fst-italic">"Unggul dalam Prestasi, Berkarakter, Berbudaya Lingkungan Berlandaskan Iman dan Taqwa."</p>
+                            <hr>
+                            <h5 class="fw-bold text-primary">Misi</h5>
+                            <ol class="ps-3">
+                                <li>Melaksanakan pembelajaran dan bimbingan secara efektif.</li>
+                                <li>Menumbuhkan semangat keunggulan secara intensif.</li>
+                                <li>Menerapkan manajemen partisipatif dengan melibatkan seluruh warga sekolah.</li>
+                            </ol>
+                        </div>
+                        <div class="tab-pane fade" id="kurikulum">
+                            <h4 class="fw-bold mb-3">Kurikulum Merdeka</h4>
+                            <p>UPT SPF SMP 13 Makassar menerapkan <strong>Kurikulum Merdeka</strong> yang berfokus pada pengembangan soft skills dan karakter sesuai profil pelajar Pancasila.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sarana" class="section-padding bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Sarana & Prasarana</h2>
+            </div>
+            <div class="row g-3" id="sarana-container"></div>
+            <div class="text-center mt-4 pt-3" id="sarana-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('sarana', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('sarana', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="ekskul" class="section-padding bg-white">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Ekstrakurikuler</h2>
+                <p class="text-muted">Mengembangkan bakat dan minat siswa di luar akademik.</p>
+            </div>
+            <div class="row g-4 justify-content-center" id="ekskul-container"></div>
+            <div class="text-center mt-4 pt-3" id="ekskul-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('ekskul', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('ekskul', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="agenda" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="text-center section-title">Agenda Sekolah</h2>
+            <div class="row g-4" id="agenda-container">
+                <div class="col-12 text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Memuat agenda...</div>
+            </div>
+            <div class="text-center mt-4 pt-3" id="agenda-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('agenda', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('agenda', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="berita" class="section-padding bg-white">
+        <div class="container">
+            <h2 class="text-center section-title">Berita Terkini</h2>
+            <div class="row g-4" id="berita-container">
+                <div class="col-12 text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Memuat berita...</div>
+            </div>
+            <div class="text-center mt-4 pt-3" id="berita-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('berita', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('berita', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="pengajar" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="text-center section-title">Tim Pengajar</h2>
+            <div class="row justify-content-center g-4" id="pengajar-container">
+                <div class="col-12 text-center text-muted">Memuat...</div>
+            </div>
+            <div class="text-center mt-4 pt-3" id="pengajar-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('pengajar', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('pengajar', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="galeri" class="section-padding bg-white">
+        <div class="container">
+            <h2 class="text-center section-title">Galeri Kegiatan</h2>
+            <div class="row g-3" id="galeri-container">
+                <div class="col-12 text-center text-muted">Memuat...</div>
+            </div>
+            <div class="text-center mt-4 pt-3" id="galeri-nav" style="display:none;">
+                <button class="btn btn-outline-primary btn-nav me-2" onclick="changePage('galeri', -1)"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline-primary btn-nav" onclick="changePage('galeri', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section id="kontak" class="section-padding bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow border-0 rounded-4 overflow-hidden">
+                        <div class="card-header bg-primary text-white text-center py-4">
+                            <h3 class="fw-bold mb-0">Hubungi & Temukan Kami</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <div class="col-lg-6 p-5">
+                                    <h5 class="fw-bold mb-4 text-primary">Kirim Pesan</h5>
+                                    <form id="contactForm">
+                                        <div class="mb-3">
+                                            <label class="fw-bold small">Nama Lengkap</label>
+                                            <input type="text" id="nama" class="form-control bg-light" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="fw-bold small">Email</label>
+                                            <input type="email" id="email" class="form-control bg-light" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="fw-bold small">Pesan</label>
+                                            <textarea id="pesan" class="form-control bg-light" rows="4" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill">Kirim Pesan <i class="fas fa-paper-plane ms-2"></i></button>
+                                    </form>
+                                </div>
+                                <div class="col-lg-6 position-relative">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-5 text-center text-lg-start">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h4 class="fw-bold text-warning">UPT SPF SMPN 13 MAKASSAR</h4>
+                    <p class="small text-white-50">Jalan Tamalate VI No. 2, Makassar<br>Telp: (0411) 8899791</p>
+                </div>
+                <div class="col-md-6 text-lg-end">
+                    <h5 class="fw-bold mb-3">Ikuti Kami</h5>
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+            <div class="border-top border-secondary mt-4 pt-3 text-center small">
+                © <span id="year"></span> UPT SPF SMPN 13 Makassar. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="newsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="newsTitle">Judul Berita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="newsImage" src="" class="w-100 rounded mb-3" style="max-height: 400px; object-fit: cover;">
+                    <div class="text-muted small mb-3">
+                        <i class="far fa-user me-1"></i> <span id="newsAuthor"></span> | 
+                        <i class="far fa-calendar-alt me-1"></i> <span id="newsDate"></span>
+                    </div>
+                    <p id="newsContent" style="white-space: pre-wrap;"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script>
+        document.getElementById('year').innerText = new Date().getFullYear();
+
+        // --- DATA SARANA (6 Item) ---
+        const staticSarana = [
+            { judul: "Laboratorium Komputer", img: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=600&q=80", desc: "Komputer spesifikasi terbaru." },
+            { judul: "Perpustakaan Digital", img: "https://plus.unsplash.com/premium_photo-1677567996070-68fa4181775a?q=80&w=872&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", desc: "Ribuan koleksi buku." },
+            { judul: "Lapangan Olahraga", img: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=600&q=80", desc: "Futsal dan Basket." },
+            { judul: "Laboratorium IPA", img: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80", desc: "Alat praktikum lengkap." },
+            { judul: "Ruang Kesenian", img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=600&q=80", desc: "Studio musik dan tari." },
+            { judul: "Musholla Sekolah", img: "https://images.unsplash.com/photo-1564121211835-e88c852648ab?auto=format&fit=crop&w=600&q=80", desc: "Tempat ibadah nyaman." }
+        ];
+
+        // --- DATA EKSKUL (8 Icon) ---
+        const staticEkskul = [
+            { nama: "Pramuka", icon: "fa-campground", color: "text-success" },
+            { nama: "PMR", icon: "fa-first-aid", color: "text-danger" },
+            { nama: "Paskibra", icon: "fa-flag", color: "text-warning" },
+            { nama: "Basket", icon: "fa-basketball-ball", color: "text-info" },
+            { nama: "Futsal", icon: "fa-futbol", color: "text-dark" },
+            { nama: "Seni Tari", icon: "fa-theater-masks", color: "text-primary" },
+            { nama: "Paduan Suara", icon: "fa-music", color: "text-secondary" },
+            { nama: "Rohis", icon: "fa-mosque", color: "text-success" }
+        ];
+
+        // --- KONFIGURASI PETA ---
+        const LAT_SEKOLAH = -5.170580;
+        const LONG_SEKOLAH = 119.44962;
+        var map = L.map('map').setView([LAT_SEKOLAH, LONG_SEKOLAH], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+        L.marker([LAT_SEKOLAH, LONG_SEKOLAH]).addTo(map).bindPopup('<div class="text-center"><b>UPT SPF SMP 13 Makassar</b><br>Lokasi Kami Disini.</div>').openPopup();
+
+        // --- SISTEM PAGINATION & RENDER ---
+        const DB = { agenda: [], berita: [], pengajar: [], galeri: [], sarana: [], ekskul: [] };
+        const IDX = { agenda: 0, berita: 0, pengajar: 0, galeri: 0, sarana: 0, ekskul: 0 };
+        const LIMIT = 3; 
+
+        // Load Static Data
+        DB.sarana = staticSarana;
+        DB.ekskul = staticEkskul;
+
+        async function fetchData(action, type) {
+            try {
+                const res = await fetch(`${API_URL}?action=${action}`);
+                const json = await res.json();
+                if (json.status === 'success') {
+                    DB[type] = json.data;
+                    renderSection(type);
+                } else {
+                    document.getElementById(type + '-container').innerHTML = '<div class="col-12 text-center text-muted">Data kosong.</div>';
+                }
+            } catch (e) { 
+                console.error(e);
+                document.getElementById(type + '-container').innerHTML = '<div class="col-12 text-center text-danger">Gagal memuat data.</div>';
+            }
+        }
+
+        function renderSection(type) {
+            const container = document.getElementById(type + '-container');
+            const nav = document.getElementById(type + '-nav');
+            const data = DB[type];
+            const start = IDX[type];
+            const sliced = data.slice(start, start + LIMIT);
+
+            let html = '';
+            if (sliced.length === 0) {
+                html = '<div class="col-12 text-center text-muted">Tidak ada data ditampilkan.</div>';
+            } else {
+                if (type === 'agenda') {
+                    html = sliced.map(item => `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-0 shadow-sm card-hover">
+                                <div class="card-body border-start border-5 border-primary">
+                                    <h5 class="fw-bold text-primary">${item.judul}</h5>
+                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> ${new Date(item.tanggal).toLocaleDateString()}</small>
+                                    <p class="mt-2 small">${item.deskripsi}</p>
+                                </div>
+                            </div>
+                        </div>`).join('');
+                } else if (type === 'berita') {
+                    // Berita dengan tombol Pop-up
+                    html = sliced.map((item, index) => {
+                        const dataStr = encodeURIComponent(JSON.stringify(item));
+                        return `
+                        <div class="col-md-4">
+                            <div class="card h-100 border-0 shadow-sm card-hover">
+                                <img src="${item.gambar}" class="card-img-top" style="height: 200px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                                <div class="card-body">
+                                    <h5 class="fw-bold">${item.judul}</h5>
+                                    <p class="small text-muted mb-2">${item.penulis} - ${item.tanggal}</p>
+                                    <p class="card-text small text-truncate">${item.isi}</p>
+                                    <button onclick="openNewsModal('${dataStr}')" class="btn btn-sm btn-outline-primary rounded-pill">Baca Selengkapnya</button>
+                                </div>
+                            </div>
+                        </div>`
+                    }).join('');
+                } else if (type === 'pengajar') {
+                    html = sliced.map(item => `
+                        <div class="col-md-4">
+                            <div class="bg-white p-4 rounded-4 shadow-sm card-hover text-center h-100">
+                                <img src="${item.foto}" class="rounded-circle mb-3 teacher-img" onerror="this.src='https://via.placeholder.com/150?text=Guru'">
+                                <h6 class="fw-bold mb-0">${item.nama}</h6>
+                                <small class="text-primary">${item.matapelajaran}</small>
+                            </div>
+                        </div>`).join('');
+                } else if (type === 'galeri') {
+                    html = sliced.map(item => `
+                        <div class="col-md-4 col-sm-6">
+                            <div class="card border-0 rounded-3 overflow-hidden shadow-sm h-100">
+                                <img src="${item.linkgambar}" class="w-100" style="height: 250px; object-fit: cover; transition: 0.5s;" onerror="this.src='https://via.placeholder.com/300?text=Error'">
+                                <div class="card-footer bg-white text-center small fw-bold">${item.judul}</div>
+                            </div>
+                        </div>`).join('');
+                } else if (type === 'sarana') {
+                    html = sliced.map(item => `
+                        <div class="col-md-4">
+                            <div class="sarana-card shadow-sm">
+                                <img src="${item.img}" alt="${item.judul}">
+                                <div class="sarana-overlay">
+                                    <h5 class="fw-bold">${item.judul}</h5>
+                                    <p class="small">${item.desc}</p>
+                                </div>
+                            </div>
+                        </div>`).join('');
+                } else if (type === 'ekskul') {
+                    html = sliced.map(item => `
+                        <div class="col-md-4 col-6">
+                            <div class="ekskul-box">
+                                <i class="fas ${item.icon} ekskul-icon ${item.color}"></i>
+                                <h5 class="fw-bold">${item.nama}</h5>
+                            </div>
+                        </div>`).join('');
+                }
+            }
+            container.innerHTML = html;
+
+            if (data.length > LIMIT) {
+                nav.style.display = 'block';
+                const btns = nav.querySelectorAll('button');
+                btns[0].disabled = (start === 0);
+                btns[1].disabled = (start + LIMIT >= data.length);
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+
+        function changePage(type, direction) {
+            const nextIdx = IDX[type] + (direction * LIMIT);
+            if (nextIdx >= 0 && nextIdx < DB[type].length) {
+                IDX[type] = nextIdx;
+                renderSection(type);
+            }
+        }
+
+        // Logic Modal Berita
+        function openNewsModal(dataStr) {
+            const data = JSON.parse(decodeURIComponent(dataStr));
+            document.getElementById('newsTitle').innerText = data.judul;
+            document.getElementById('newsImage').src = data.gambar;
+            document.getElementById('newsAuthor').innerText = data.penulis;
+            document.getElementById('newsDate').innerText = data.tanggal;
+            document.getElementById('newsContent').innerText = data.isi;
+            
+            new bootstrap.Modal(document.getElementById('newsModal')).show();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSection('sarana');
+            renderSection('ekskul');
+            fetchData('read_agenda', 'agenda');
+            fetchData('read_berita', 'berita');
+            fetchData('read_pengajar', 'pengajar');
+            fetchData('read_galeri', 'galeri');
+        });
+
+        // Contact Form
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({title: 'Mengirim...', didOpen: () => Swal.showLoading()});
+            
+            fetch(API_URL + '?action=send_message', {
+                method: 'POST',
+                body: JSON.stringify({
+                    nama: document.getElementById('nama').value,
+                    email: document.getElementById('email').value,
+                    pesan: document.getElementById('pesan').value
+                })
+            }).then(res => res.json()).then(res => {
+                if(res.status === 'success') {
+                    Swal.fire('Sukses', 'Pesan terkirim!', 'success');
+                    e.target.reset();
+                } else Swal.fire('Gagal', 'Coba lagi nanti.', 'error');
+            });
+        });
+    </script>
+</body>
+</html>

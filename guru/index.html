@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Guru - SMPN 13 Makassar</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root { 
+            --primary-color: #4e73df; 
+            --secondary-color: #858796; 
+            --bg-color: #f8f9fc;
+            --sidebar-width: 260px;
+            --topbar-height: 60px; /* Tinggi navbar mobile */
+        }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--bg-color); 
+            height: 100vh;
+            overflow-x: hidden; /* Mencegah scroll horizontal */
+        }
+
+        /* --- LOGIN PAGE STYLE --- */
+        #login-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 2000;
+        }
+        
+        .card-login {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        /* --- LAYOUT UTAMA --- */
+        
+        /* 1. Mobile Navbar (Hanya muncul di HP) */
+        .mobile-topbar {
+            height: var(--topbar-height);
+            background: #fff;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1040;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 2. Sidebar Style */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #fff;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #eaecf4;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1045; /* Di atas konten tapi di bawah modal/swal */
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .nav-link {
+            padding: 15px 25px;
+            color: #5a5c69;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color);
+            background: #f8f9fc;
+            border-left-color: var(--primary-color);
+        }
+        
+        .nav-link i { width: 25px; display: inline-block; text-align: center; }
+
+        /* 3. Main Content Area */
+        .main-content {
+            padding: 30px;
+            min-height: 100vh;
+            transition: margin-left 0.3s;
+        }
+
+        /* --- RESPONSIVE LOGIC (DESKTOP VS MOBILE) --- */
+        
+        /* Tampilan DESKTOP (Layar > 768px) */
+        @media (min-width: 769px) {
+            .mobile-topbar { display: none; } /* Sembunyikan topbar HP */
+            
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                transform: translateX(0) !important; /* Paksa sidebar selalu muncul */
+                visibility: visible !important;
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width); /* Geser konten ke kanan */
+            }
+            
+            /* Sembunyikan tombol close offcanvas di desktop */
+            .btn-close-sidebar { display: none; }
+        }
+
+        /* Tampilan MOBILE (Layar <= 768px) */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+                padding-top: calc(var(--topbar-height) + 20px); /* Beri jarak dari topbar */
+            }
+
+            /* Menggunakan class offcanvas bootstrap, tapi kita override stylingnya sedikit */
+            .offcanvas-start {
+                width: var(--sidebar-width);
+                border: none;
+            }
+        }
+
+        /* Module Cards */
+        .card-module {
+            border: none; border-radius: 15px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        }
+        .page-title { color: #4e73df; font-weight: 700; margin-bottom: 20px; }
+        .badge-status { padding: 8px 12px; border-radius: 30px; font-size: 0.8em; }
+        .badge-pending { background: #f1f1f1; color: #888; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+
+        /* Loader */
+        #loader {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(5px); z-index: 9999;
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="loader">
+    <div class="spinner-border text-primary mb-2"></div>
+    <small class="fw-bold text-primary">Memproses...</small>
+</div>
+
+<div id="login-page">
+    <div class="card-login">
+        <div class="text-center mb-4">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                <i class="bi bi-mortarboard-fill fs-3"></i>
+            </div>
+            <h4 class="fw-bold">Login Guru</h4>
+            <p class="text-muted small">Portal SMPN 13 Makassar</p>
+        </div>
+        
+        <div class="mb-3">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-primary"></i></span>
+                <input type="email" id="email" class="form-control bg-light border-start-0" placeholder="Email akun belajar Anda">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-primary"></i></span>
+                <input type="password" id="pass" class="form-control bg-light border-start-0 border-end-0" placeholder="Password">
+                <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword()">
+                    <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm" onclick="login()">MASUK</button>
+        <!--<div class="text-center mt-3">
+            <a href="<?= ScriptApp.getService().getUrl() ?>?page=admin" class="small text-decoration-none text-muted">Login Admin</a>
+        </div>-->
+    </div>
+</div>
+
+<div id="main-app" class="d-none">
+    
+    <nav class="mobile-topbar d-md-none">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-mortarboard-fill text-primary fs-4 me-2"></i>
+            <span class="fw-bold text-dark">Portal Guru</span>
+        </div>
+        <button class="btn btn-light text-primary border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="bi bi-list fs-1"></i>
+        </button>
+    </nav>
+
+    <div class="offcanvas-md offcanvas-start sidebar" tabindex="-1" id="sidebarMenu">
+        <div class="sidebar-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold text-primary m-0"><i class="bi bi-grid-fill me-2"></i>MENU</h5>
+                <small class="text-muted">Panel Guru</small>
+            </div>
+            <button type="button" class="btn-close btn-close-sidebar d-md-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="nav flex-column mt-3">
+            <a class="nav-link active" onclick="navigate('modulData', this)">
+                <i class="bi bi-person-circle"></i> <span>Data Diri</span>
+            </a>
+            <a class="nav-link" onclick="navigate('modulBerkas', this)">
+                <i class="bi bi-cloud-arrow-up"></i> <span>Upload Berkas</span>
+            </a>
+            <a class="nav-link" onclick="navigate('modulLink', this)">
+                <i class="bi bi-link-45deg"></i> <span>Link Kegiatan</span>
+            </a>
+        </div>
+
+        <div class="mt-auto p-4">
+            <button class="btn btn-danger w-100 rounded-pill" onclick="logout()">
+                <i class="bi bi-box-arrow-left me-2"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold m-0" id="greeting">Halo, Guru!</h4>
+                <p class="text-muted small m-0" id="user-email-display">Memuat data...</p>
+            </div>
+        </div>
+
+        <div id="modulData" class="page animate-fade">
+            <h5 class="page-title">Identitas Pegawai</h5>
+            <div class="card card-module p-4">
+                <div class="alert alert-info border-0 bg-light text-primary small mb-4">
+                    <i class="bi bi-info-circle-fill me-2"></i> Pastikan data NIP dan Tanggal Lahir sesuai.
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted">Nama Lengkap</label>
+                        <input type="text" id="nama" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted">NIP</label>
+                        <input type="number" id="nip" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted">Pangkat/Golongan</label>
+                        <select id="pangkat" class="form-select">
+                            <option value="">- Pilih -</option>
+                            <option value="III/a">III/a</option><option value="III/b">III/b</option>
+                            <option value="III/c">III/c</option><option value="III/d">III/d</option>
+                            <option value="IV/a">IV/a</option><option value="IV/b">IV/b</option>
+                            <option value="IV/c">IV/c</option><option value="IV/d">IV/d</option>
+                            <option value="IX">PPPK (IX)</option><option value="VI">PPPK (PW)</option><option value="II">Honorer</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted">Tempat Lahir</label>
+                        <input type="text" id="tmptLahir" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-muted">Tanggal Lahir</label>
+                        <input type="date" id="tglLahir" class="form-control">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="small fw-bold text-muted">Mata Pelajaran</label>
+                        <select id="mapel" class="form-select">
+                            <option value="PAI">Pend.Agama Islam</option><option value="PAK">Pend.Agama Kristen</option>
+                            <option value="Bahasa Indonesia">Bahasa Indonesia</option><option value="Bahasa Inggris">Bahasa Inggris</option>
+                            <option value="Matematika">Matematika</option><option value="IPA">IPA</option><option value="PKN">PKN</option>
+                            <option value="IPS">IPS</option><option value="PJOK">PJOK</option>
+                            <option value="SBK">Seni Budaya</option><option value="Prakarya">Prakarya</option>
+                            <option value="Informatika">Informatika</option><option value="Mulok">Mulok</option>
+                            <option value="BK">Konseling</option><option value="TU">Tata Usaha</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-end mt-4">
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" onclick="saveData()">
+                        <i class="bi bi-save me-1"></i> SIMPAN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modulBerkas" class="page d-none animate-fade">
+            <h5 class="page-title">Dokumen Digital</h5>
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card card-module p-4 h-100">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">Upload Baru</h6>
+                        <label class="small fw-bold text-muted">Jenis Dokumen</label>
+                        <select id="jenis" class="form-select mb-3">
+                            <option value="KK">Kartu Keluarga (KK)</option>
+                            <option value="SK">SK Terakhir</option>
+                            <option value="KGB">KGB Terakhir</option>
+                            <option value="Foto">Foto Resmi</option>
+                        </select>
+                        <label class="small fw-bold text-muted">File (PDF/Image)</label>
+                        <input type="file" id="fileInput" class="form-control mb-4">
+                        <button class="btn btn-success w-100 rounded-pill fw-bold" onclick="uploadFile()">
+                            <i class="bi bi-cloud-arrow-up me-1"></i> UNGGAH
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="card card-module p-4 h-100">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">Status Berkas</h6>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                <span><i class="bi bi-card-heading text-primary me-2"></i>Kartu Keluarga</span>
+                                <span id="status-KK" class="badge-status badge-pending">Belum Ada</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                <span><i class="bi bi-file-earmark-text text-primary me-2"></i>SK Terakhir</span>
+                                <span id="status-SK" class="badge-status badge-pending">Belum Ada</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                <span><i class="bi bi-cash-coin text-primary me-2"></i>KGB Terakhir</span>
+                                <span id="status-KGB" class="badge-status badge-pending">Belum Ada</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-2">
+                                <span><i class="bi bi-person-square text-primary me-2"></i>Foto Resmi</span>
+                                <span id="status-Foto" class="badge-status badge-pending">Belum Ada</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modulLink" class="page d-none animate-fade">
+            <h5 class="page-title">Laporan Link</h5>
+            <div class="card card-module p-4 mb-4">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="small fw-bold text-muted">Link Drive Ekinerja</label>
+                        <input type="text" id="jLink" class="form-control" placeholder="contoh: Link Ekinerja_nama">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="small fw-bold text-muted">URL Google Drive</label>
+                        <input type="url" id="uLink" class="form-control" placeholder="https://drive.google.com/...">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-info text-white w-100 fw-bold rounded-pill" onclick="saveLink()">KIRIM</button>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="fw-bold text-muted mb-3">Riwayat Terkirim</h6>
+            <div class="card card-module overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light small text-muted">
+                            <tr><th class="ps-4">JUDUL</th><th class="text-end pe-4">LINK</th></tr>
+                        </thead>
+                        <tbody id="history-links">
+                            <tr><td colspan="2" class="text-center py-4 small text-muted">Belum ada data</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydmVe-OAVEgj4ixDMWlbU6ZXGMNVGWJh4exMtxiug5JYLiJFKZM7BFCX0fXYiMOlWo/exec"; 
+    let session = {};
+
+    function toggleLoader(s) { document.getElementById('loader').style.display = s ? 'flex' : 'none'; }
+    
+    // Toggle Password
+    function togglePassword() {
+        const x = document.getElementById("pass");
+        const i = document.getElementById("toggleIcon");
+        if(x.type === "password") { x.type="text"; i.classList.replace("bi-eye-slash","bi-eye"); }
+        else { x.type="password"; i.classList.replace("bi-eye","bi-eye-slash"); }
+    }
+
+    // Fungsi Navigasi Baru (Support Mobile Auto-Close)
+    function navigate(pageId, el) {
+        // 1. Ganti tampilan Halaman
+        document.querySelectorAll('.page').forEach(p => p.classList.add('d-none'));
+        const target = document.getElementById(pageId);
+        target.classList.remove('d-none');
+        
+        // Animasi halus
+        target.style.opacity = 0;
+        setTimeout(()=> target.style.opacity = 1, 50);
+
+        // 2. Update Nav Active State
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+
+        // 3. Khusus Mobile: Tutup Sidebar setelah klik
+        const sidebar = document.getElementById('sidebarMenu');
+        // Cek jika sidebar sedang mode offcanvas (mobile) dan terbuka
+        if (window.getComputedStyle(sidebar).position === 'fixed' && window.innerWidth <= 768) {
+             const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebar);
+             if(bsOffcanvas) bsOffcanvas.hide();
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('pass').value;
+        if(!email || !password) return Swal.fire('Oops','Email dan password wajib diisi','warning');
+
+        toggleLoader(true);
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', email, password }) }).then(r => r.json());
+            if (res.status === "success") {
+                session = res;
+                document.getElementById('user-email-display').innerText = session.email;
+                await fetchGuruData(session.email);
+                
+                document.getElementById('login-page').classList.add('d-none'); // Hide Login
+                document.getElementById('main-app').classList.remove('d-none'); // Show App
+                
+                Swal.fire({icon:'success', title:'Login Berhasil', timer:1500, showConfirmButton:false});
+            } else {
+                Swal.fire('Gagal', res.message, 'error');
+            }
+        } catch(e) { Swal.fire('Error', 'Koneksi bermasalah', 'error'); }
+        toggleLoader(false);
+    }
+
+    async function fetchGuruData(email) {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getGuruData', email }) }).then(r => r.json());
+        if(res.status === 'success') {
+            if(res.profil) {
+                document.getElementById('nama').value = res.profil.nama || "";
+                document.getElementById('nip').value = res.profil.nip || "";
+                document.getElementById('pangkat').value = res.profil.pangkat || "";
+                document.getElementById('tmptLahir').value = res.profil.tmptLahir || "";
+                document.getElementById('tglLahir').value = res.profil.tglLahir || "";
+                document.getElementById('mapel').value = res.profil.mapel || "";
+            }
+            // Update Status File
+            const setStatus = (id, url) => {
+                const el = document.getElementById(id);
+                if(url) {
+                    el.className = "badge-status badge-success";
+                    el.innerHTML = `<a href="${url}" target="_blank" class="text-white text-decoration-none"><i class="bi bi-check-circle"></i> Lihat</a>`;
+                } else {
+                    el.className = "badge-status badge-pending";
+                    el.innerText = "Belum Ada";
+                }
+            };
+            setStatus('status-KK', res.berkas.KK);
+            setStatus('status-SK', res.berkas.SK);
+            setStatus('status-KGB', res.berkas.KGB);
+            setStatus('status-Foto', res.berkas.Foto);
+
+            // History Link
+            const tbody = document.getElementById('history-links');
+            if(res.links.length > 0) {
+                tbody.innerHTML = "";
+                res.links.forEach(l => {
+                    tbody.innerHTML += `<tr><td class="ps-4 fw-bold">${l.judul}</td><td class="text-end pe-4"><a href="${l.url}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">Buka</a></td></tr>`;
+                });
+            }
+        }
+    }
+
+    async function saveData() {
+        const data = { 
+            email: session.email, 
+            nama: document.getElementById('nama').value, 
+            nip: document.getElementById('nip').value, 
+            pangkat: document.getElementById('pangkat').value, 
+            tmptLahir: document.getElementById('tmptLahir').value, 
+            tglLahir: document.getElementById('tglLahir').value, 
+            mapel: document.getElementById('mapel').value 
+        };
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'simpanData', data }) }).then(r => r.json());
+        toggleLoader(false);
+        Swal.fire(res.status==='success'?'Berhasil':'Gagal', res.message, res.status==='success'?'success':'error');
+    }
+
+    function uploadFile() {
+        const file = document.getElementById('fileInput').files[0];
+        const jenis = document.getElementById('jenis').value;
+        if (!file) return Swal.fire('Peringatan', 'Pilih file dulu!', 'warning');
+        
+        toggleLoader(true);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const res = await fetch(SCRIPT_URL, { 
+                method: 'POST', body: JSON.stringify({ action: 'upload', base64: reader.result, fileName: file.name, email: session.email, jenis }) 
+            }).then(r => r.json());
+            
+            toggleLoader(false);
+            if(res.status === 'success') {
+                Swal.fire('Selesai', res.message, 'success');
+                fetchGuruData(session.email);
+            } else Swal.fire('Gagal', res.message, 'error');
+        };
+    }
+
+    async function saveLink() {
+        const j = document.getElementById('jLink').value;
+        const u = document.getElementById('uLink').value;
+        if(!j || !u) return Swal.fire('Data Kurang', 'Isi judul dan link!', 'warning');
+
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'simpanLink', data: { email: session.email, judul: j, link: u } }) }).then(r => r.json());
+        toggleLoader(false);
+        
+        if(res.status === 'success') {
+             Swal.fire('Terkirim', res.message, 'success');
+             document.getElementById('jLink').value = ""; document.getElementById('uLink').value = "";
+             fetchGuruData(session.email);
+        } else Swal.fire('Gagal', res.message, 'error');
+    }
+
+    function logout() {
+        Swal.fire({
+            title: 'Keluar?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya', cancelButtonText: 'Batal', confirmButtonColor: '#d33'
+        }).then((r) => { if (r.isConfirmed) location.reload(); });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ujian Online CBT</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body { 
+            background-color: #f0f2f5; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            user-select: none; /* Mencegah blok teks (copy paste) */
+            -webkit-user-select: none;
+        }
+        .hidden { display: none !important; }
+        
+        /* --- CARD STYLES --- */
+        .card-dash { 
+            border: none; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            background: #fff;
+        }
+        
+        /* --- MAPEL CARD --- */
+        .card-mapel { 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            border: 1px solid #eef2f7; 
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .card-mapel:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+            border-color: #cfe2ff;
+        }
+        .card-done { 
+            background-color: #f8f9fa; 
+            opacity: 0.7; 
+            border: 1px solid #dee2e6;
+        }
+
+        /* --- SOAL & OPSI --- */
+        .soal-text { font-size: 1.1rem; line-height: 1.6; color: #212529; }
+        .soal-text img { 
+            max-width: 100%; height: auto; 
+            border-radius: 8px; margin: 15px 0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .opsi-btn { 
+            text-align: left; 
+            white-space: normal; 
+            width: 100%;
+            margin-bottom: 12px; 
+            padding: 15px; 
+            border: 2px solid #e9ecef; 
+            border-radius: 10px; 
+            background: white; 
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .opsi-btn:hover { 
+            background-color: #f8f9fa; 
+            border-color: #0d6efd; 
+            transform: translateX(5px);
+        }
+        
+        /* Opsi Aktif (Dipilih) */
+        .opsi-btn.active { 
+            background-color: #e7f1ff; 
+            border-color: #0d6efd; 
+            color: #0c63e4; 
+            font-weight: 600;
+        }
+        .opsi-btn.active::after {
+            content: '\f00c'; /* Icon Check */
+            font-family: "Font Awesome 6 Free"; 
+            font-weight: 900;
+            position: absolute; right: 15px; top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* --- STICKY TIMER --- */
+        .sticky-timer { 
+            position: sticky; top: 0; z-index: 1000; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(5px);
+            padding: 10px 15px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+            border-bottom: 1px solid #eee; 
+            margin: -20px -20px 20px -20px; /* Offset padding card */
+            border-radius: 12px 12px 0 0;
+        }
+        
+        /* --- NAVIGASI NOMOR --- */
+        .nav-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
+            gap: 8px; 
+        }
+        .btn-nomor { 
+            width: 100%; aspect-ratio: 1; 
+            font-weight: bold; border-radius: 8px; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(255,255,255,0.8);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fas fa-laptop-code me-2"></i>UJIAN ONLINE
+            </a>
+            <div class="d-flex align-items-center text-white" id="user-info" style="display:none !important;">
+                <div class="me-3 text-end lh-1">
+                    <span class="d-block fw-bold" id="namaSiswaDisplay">Siswa</span>
+                    <span class="d-block small opacity-75 mt-1" id="kelasSiswaDisplay">Kelas -</span>
+                </div>
+                <button onclick="logout()" class="btn btn-sm btn-light text-primary fw-bold px-3 shadow-sm">
+                    <i class="fas fa-sign-out-alt me-1"></i> Keluar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container pb-5">
+        
+        <div id="view-login" class="row justify-content-center align-items-center" style="min-height: 60vh;">
+            <div class="col-md-5 col-lg-4">
+                <div class="card card-dash p-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-user-graduate fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Login Peserta</h4>
+                        <p class="text-muted small">Silakan masuk untuk memulai ujian</p>
+                    </div>
+                    
+                    <form id="formLogin">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">USERNAME</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-user text-muted"></i></span>
+                                <input type="text" id="username" class="form-control border-start-0" placeholder="Masukkan username" required autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary">PASSWORD</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                                <input type="password" id="password" class="form-control border-start-0" placeholder="Masukkan password" required>
+                                <button class="btn btn-outline-secondary border-start-0" type="button" id="btnTogglePass">
+                                    <i class="fas fa-eye" id="iconPass"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                            MASUK <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-dark mb-0"><i class="fas fa-list-alt me-2"></i>Daftar Ujian</h4>
+                <button onclick="loadMapel()" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+            </div>
+            <div class="row g-4" id="listMapel">
+                </div>
+        </div>
+
+        <div id="view-ujian" class="hidden">
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card card-dash h-100 p-4 pt-0">
+                        <div class="sticky-timer d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary me-2" id="mapel-label">MAPEL</span>
+                                <span class="fw-bold text-secondary">Soal No. <span id="no-soal" class="text-dark fs-5">1</span></span>
+                            </div>
+                            <div class="badge bg-danger fs-6 font-monospace shadow-sm px-3 py-2">
+                                <i class="fas fa-stopwatch me-1"></i> <span id="timer">00:00:00</span>
+                            </div>
+                        </div>
+
+                        <div class="soal-area">
+                            <div class="soal-text mb-4" id="soal-container">Loading...</div>
+                            <div class="d-flex flex-column gap-2" id="opsi-container">
+                                </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+                            <button id="btn-prev" onclick="navigasiSoal(-1)" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-chevron-left me-1"></i> Sebelumnya
+                            </button>
+                            <button id="btn-next" onclick="navigasiSoal(1)" class="btn btn-primary px-4">
+                                Selanjutnya <i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card card-dash p-3">
+                        <h6 class="fw-bold mb-3 small text-muted text-uppercase text-center">Navigasi Soal</h6>
+                        <div class="nav-grid mb-4" id="nav-soal">
+                            </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning text-dark fw-bold" onclick="raguRagu()">
+                                <i class="fas fa-bookmark me-1"></i> Tandai Ragu
+                            </button>
+                            <button class="btn btn-success fw-bold py-2 shadow-sm" onclick="selesaiUjian()">
+                                <i class="fas fa-paper-plane me-1"></i> KIRIM JAWABAN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // ==========================================
+        // 1. KONFIGURASI PENTING
+        // ==========================================
+        // Ganti URL di bawah ini dengan URL Web App (Exec) terbaru Anda!
+        const API_URL = 'https://script.google.com/macros/s/AKfycbx7oPurNghwpUQGwqR7OmJ_oDxR8k7qELjIR1Iq66c2ZF47UdI5PNwVC0NwDUbxGxAY/exec'; 
+
+        // State Global Aplikasi
+        let state = {
+            user: null,         // Data siswa
+            mapel: null,        // Data ujian yg sedang aktif
+            soal: [],           // Array soal (sudah diacak server)
+            jawaban: {},        // Jawaban user { "unique_id": "A/B/C/D" }
+            durasi: 0,          // Sisa waktu detik
+            timerInterval: null,// Interval timer
+            isUjianAktif: false,// Status sedang ujian
+            pelanggaran: 0      // Hitung pindah tab
+        };
+        let currentSoalIndex = 0;
+
+        // ==========================================
+        // 2. UTILITAS & EVENT LISTENER
+        // ==========================================
+        
+        // Toggle Lihat Password
+        document.getElementById('btnTogglePass').addEventListener('click', function() {
+            const passInput = document.getElementById('password');
+            const icon = document.getElementById('iconPass');
+            if (passInput.type === 'password') {
+                passInput.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passInput.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+
+        // Pindah Tampilan (SPA)
+        function switchView(id) {
+            document.querySelectorAll('.main-container > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        // Fungsi Fetch API Universal
+        async function apiRequest(body) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                return await response.json();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Koneksi Gagal', 'Pastikan internet lancar atau URL script benar.', 'error');
+                return { status: 'error' };
+            }
+        }
+
+        // ==========================================
+        // 3. FITUR LOGIN
+        // ==========================================
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            Swal.fire({ title: 'Memeriksa...', didOpen: () => Swal.showLoading() });
+
+            const res = await apiRequest({ action: 'login', payload: { username: u, password: p } });
+            
+            if (res.status === 'success') {
+                state.user = res.data; 
+                
+                // Update UI User
+                document.getElementById('namaSiswaDisplay').innerText = state.user.nama;
+                document.getElementById('kelasSiswaDisplay').innerText = state.user.kelas || '-';
+                document.getElementById('user-info').style.setProperty('display', 'flex', 'important');
+                
+                Swal.fire({ icon: 'success', title: `Halo, ${state.user.nama}`, timer: 1500, showConfirmButton: false });
+                switchView('view-dashboard');
+                loadMapel();
+            } else { 
+                Swal.fire('Gagal Login', res.message || 'Username/Password salah', 'error'); 
+            }
+        });
+
+        function logout() { location.reload(); }
+
+        // ==========================================
+        // 4. DASHBOARD & LOAD MAPEL
+        // ==========================================
+        async function loadMapel() {
+            const listDiv = document.getElementById('listMapel');
+            listDiv.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+            
+            const res = await apiRequest({ action: 'getMapelSiswa', payload: { nama: state.user.nama } });
+            listDiv.innerHTML = '';
+
+            if (res.status === 'success') {
+                if(res.data.length === 0) { 
+                    listDiv.innerHTML = '<div class="alert alert-info w-100 text-center">Belum ada ujian yang aktif untuk Anda.</div>'; 
+                    return; 
+                }
+                
+                res.data.forEach(m => {
+                    let btn = '';
+                    let badge = '';
+                    
+                    if(m.sudah_dikerjakan) {
+                        btn = `<button class="btn btn-secondary w-100" disabled><i class="fas fa-check"></i> Selesai</button>`;
+                        badge = `<span class="badge bg-success float-end">Selesai</span>`;
+                    } else {
+                        btn = `<button class="btn btn-primary w-100 fw-bold" onclick="konfirmasiUjian('${m.id}', '${m.nama}', ${m.durasi})">KERJAKAN</button>`;
+                        badge = `<span class="badge bg-primary float-end">Tersedia</span>`;
+                    }
+
+                    listDiv.innerHTML += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 p-3 card-mapel ${m.sudah_dikerjakan?'card-done':''}">
+                            <div class="mb-3 border-bottom pb-2">
+                                <small class="fw-bold text-muted">MATA PELAJARAN</small>
+                                ${badge}
+                                <h5 class="fw-bold mt-1 text-truncate">${m.nama}</h5>
+                            </div>
+                            <div class="card-body p-0 mb-3">
+                                <p class="small text-muted mb-1"><i class="fas fa-align-left me-2"></i> ${m.deskripsi || '-'}</p>
+                                <p class="small text-muted fw-bold"><i class="fas fa-clock me-2 text-warning"></i> ${m.durasi} Menit</p>
+                            </div>
+                            <div class="mt-auto">${btn}</div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                listDiv.innerHTML = '<div class="alert alert-danger w-100">Gagal memuat data ujian.</div>';
+            }
+        }
+
+        // ==========================================
+        // 5. ENGINE UJIAN (CORE SYSTEM)
+        // ==========================================
+        
+        function konfirmasiUjian(id, nama, durasi) {
+            Swal.fire({
+                title: 'Mulai Ujian?', 
+                html: `Mapel: <b>${nama}</b><br>Waktu: ${durasi} menit.<br><br><span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle"></i> Dilarang pindah tab/aplikasi!</span>`,
+                icon: 'warning', 
+                showCancelButton: true, 
+                confirmButtonText: 'Mulai Mengerjakan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    persiapanUjian(id, nama, durasi);
+                }
+            });
+        }
+
+        async function persiapanUjian(id, namaMapel, durasiMenit) {
+            Swal.showLoading();
+            const res = await apiRequest({ action: 'getSoal', payload: { pelajaran_id: id } });
+            
+            if (res.status === 'success') {
+                // Inisialisasi State Ujian
+                state.mapel = { id: id, nama: namaMapel };
+                state.soal = res.data; // Soal sudah diacak server
+                state.jawaban = {};
+                state.durasi = durasiMenit * 60; // Konversi ke detik
+                state.pelanggaran = 0;
+                state.isUjianAktif = true;
+                
+                // Setup Tampilan
+                document.getElementById('mapel-label').innerText = namaMapel;
+                setupNavigasiGrid();
+                
+                // Masuk Fullscreen (Opsional, browser modern memblokir jika tidak trigger user)
+                try { document.documentElement.requestFullscreen(); } catch(e){}
+                
+                switchView('view-ujian');
+                Swal.close();
+                
+                startTimer();
+                renderSoal(0); // Tampilkan soal pertama
+            } else { 
+                Swal.fire('Gagal', res.message, 'error'); 
+            }
+        }
+
+        // Render Tombol Nomor 1, 2, 3...
+        function setupNavigasiGrid() {
+            const navDiv = document.getElementById('nav-soal');
+            navDiv.innerHTML = '';
+            state.soal.forEach((_, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-secondary btn-nomor';
+                btn.id = `nav-btn-${idx}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => renderSoal(idx);
+                navDiv.appendChild(btn);
+            });
+        }
+
+        // Fungsi Render Satu Soal
+        function renderSoal(index) {
+            currentSoalIndex = index;
+            const dataSoal = state.soal[index];
+            const uniqueId = dataSoal.unique_id; // ID Baris Excel (PENTING UNTUK SKOR)
+
+            // Info Header
+            document.getElementById('no-soal').innerText = index + 1;
+            document.getElementById('btn-prev').disabled = (index === 0);
+            document.getElementById('btn-next').disabled = (index === state.soal.length - 1);
+            
+            // Render Teks Soal
+            document.getElementById('soal-container').innerHTML = dataSoal.pertanyaan.replace(/\n/g, "<br>"); 
+
+            // Highlight Grid Navigasi
+            document.querySelectorAll('.btn-nomor').forEach(b => b.classList.remove('active', 'border-primary', 'border-2'));
+            document.getElementById(`nav-btn-${index}`).classList.add('active', 'border-primary', 'border-2');
+
+            // Render Pilihan Jawaban (Loop Opsi Acak)
+            const divOpsi = document.getElementById('opsi-container');
+            divOpsi.innerHTML = '';
+            
+            dataSoal.opsi_acak.forEach(opsi => {
+                // Cek apakah user sudah menjawab soal ini sebelumnya
+                const isSelected = state.jawaban[uniqueId] === opsi.id;
+                const activeClass = isSelected ? 'active' : '';
+                
+                // Buat Tombol Opsi
+                const btn = document.createElement('button');
+                btn.className = `opsi-btn ${activeClass}`;
+                btn.innerHTML = `<span class="fw-bold me-2 text-secondary">[${opsi.id}]</span> ${opsi.teks}`;
+                
+                // Event Klik Jawaban
+                btn.onclick = () => simpanPilihan(index, uniqueId, opsi.id);
+                
+                divOpsi.appendChild(btn);
+            });
+        }
+
+        // Simpan Jawaban ke State
+        function simpanPilihan(indexUI, uniqueRowId, jawabanId) {
+            // Kita simpan pasangan: { ID_UNIK_BARIS : JAWABAN_A_B_C_D }
+            state.jawaban[uniqueRowId] = jawabanId;
+            
+            // Update warna tombol navigasi (sudah dijawab)
+            const navBtn = document.getElementById(`nav-btn-${indexUI}`);
+            navBtn.classList.remove('btn-outline-secondary', 'btn-warning');
+            navBtn.classList.add('btn-primary', 'text-white');
+            
+            // Re-render untuk update tampilan tombol opsi yang aktif
+            renderSoal(indexUI); 
+        }
+
+        function navigasiSoal(arah) {
+            const next = currentSoalIndex + arah;
+            if (next >= 0 && next < state.soal.length) renderSoal(next);
+        }
+
+        function raguRagu() {
+            document.getElementById(`nav-btn-${currentSoalIndex}`).className = 'btn btn-warning btn-nomor text-dark fw-bold';
+        }
+
+        // ==========================================
+        // 6. TIMER & ANTI CURANG
+        // ==========================================
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            const display = document.getElementById('timer');
+            
+            state.timerInterval = setInterval(() => {
+                state.durasi--;
+                
+                const jam = Math.floor(state.durasi / 3600);
+                const menit = Math.floor((state.durasi % 3600) / 60);
+                const detik = state.durasi % 60;
+                
+                display.innerText = `${jam>0 ? jam+':' : ''}${menit<10?'0':''}${menit}:${detik<10?'0':''}${detik}`;
+                
+                if (state.durasi <= 0) {
+                    finishTimer();
+                }
+            }, 1000);
+        }
+
+        function finishTimer() {
+            clearInterval(state.timerInterval);
+            state.isUjianAktif = false;
+            Swal.fire({
+                icon: 'info', title: 'Waktu Habis', text: 'Jawaban dikirim otomatis.',
+                allowOutsideClick: false
+            }).then(() => kirimJawaban(true));
+        }
+
+        // Deteksi Pindah Tab
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden && state.isUjianAktif) {
+                state.pelanggaran++;
+                const sisa = 3 - state.pelanggaran;
+                
+                if (sisa <= 0) {
+                    state.isUjianAktif = false;
+                    clearInterval(state.timerInterval);
+                    Swal.fire({ 
+                        icon: 'error', title: 'DISKUALIFIKASI', 
+                        text: 'Anda terlalu sering meninggalkan halaman ujian.', 
+                        allowOutsideClick: false 
+                    }).then(() => kirimJawaban(true));
+                } else {
+                    Swal.fire({ 
+                        icon: 'warning', title: 'PERINGATAN!', 
+                        html: `Dilarang pindah aplikasi!<br>Sisa toleransi: <b>${sisa}</b> kali.`, 
+                        allowOutsideClick: false 
+                    });
+                }
+            }
+        });
+
+        // ==========================================
+        // 7. SUBMIT JAWABAN
+        // ==========================================
+        function selesaiUjian() {
+            const dijawab = Object.keys(state.jawaban).length;
+            const total = state.soal.length;
+            
+            let pesan = `Terjawab: <b>${dijawab}</b> dari <b>${total}</b> soal.`;
+            let iconType = 'question';
+
+            if (dijawab < total) {
+                pesan += `<br><span class="text-danger">Masih ada soal kosong!</span> Yakin kirim sekarang?`;
+                iconType = 'warning';
+            } else {
+                pesan += `<br>Pastikan semua jawaban sudah benar.`;
+            }
+
+            Swal.fire({
+                title: 'Kirim Jawaban?',
+                html: pesan,
+                icon: iconType,
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                confirmButtonText: 'Ya, Kirim',
+                cancelButtonText: 'Periksa Lagi'
+            }).then((res) => { if (res.isConfirmed) kirimJawaban(); });
+        }
+
+        async function kirimJawaban(auto = false) {
+            // Stop Ujian
+            state.isUjianAktif = false; 
+            clearInterval(state.timerInterval);
+            if (document.fullscreenElement) try { await document.exitFullscreen(); } catch(e){}
+            
+            Swal.fire({ 
+                title: 'Sedang Menilai...', 
+                html: 'Mohon tunggu, jangan tutup halaman ini.',
+                allowOutsideClick: false, 
+                didOpen: () => Swal.showLoading() 
+            });
+
+            // Payload: Kirim jawaban dengan ID uniknya
+            const payload = {
+                pelajaran_id: state.mapel.id,
+                nama: state.user.nama,
+                kelas: state.user.kelas,
+                jawaban_user: state.jawaban 
+            };
+
+            try {
+                const res = await apiRequest({ action: 'submitJawaban', payload: payload });
+                
+                if (res.status === 'success') {
+                    const judul = auto ? 'Waktu Habis / Diskualifikasi' : 'Ujian Selesai';
+                    Swal.fire({
+                        title: judul, 
+                        html: `Skor Anda:<br><h1 class="text-primary display-3 fw-bold">${res.skor}</h1>`, 
+                        icon: 'success',
+                        allowOutsideClick: false,
+                        confirmButtonText: 'Kembali ke Dashboard'
+                    }).then(() => { 
+                        // Reset State
+                        state.mapel = null; state.soal = []; state.jawaban = {};
+                        switchView('view-dashboard');
+                        loadMapel();
+                    });
+                } else { 
+                    Swal.fire('Gagal Kirim', res.message, 'error'); 
+                }
+            } catch (e) { 
+                Swal.fire('Error', 'Gagal mengirim jawaban. Cek internet.', 'error'); 
+            }
+        }
+    </script>
+</body>
+</html>

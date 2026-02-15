@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { min-height: 100vh; background: #212529; color: white; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover, .nav-link.active { color: #fff; background: #343a40; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="d-none"><div class="spinner-border text-primary"></div></div>
+
+<div id="login-admin" class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow-lg border-0" style="width: 350px;">
+        <h4 class="text-center mb-3 fw-bold text-danger">ADMIN PANEL</h4>
+        <input type="text" id="adm-user" class="form-control mb-2" placeholder="Username">
+        <input type="password" id="adm-pass" class="form-control mb-3" placeholder="Password">
+        <button class="btn btn-danger w-100 fw-bold" onclick="loginAdmin()">LOGIN</button>
+        <a href="https://irwanabdullah.github.io/portalguru/" class="text-center mt-3 small text-decoration-none">Kembali ke Portal Guru</a>
+    </div>
+</div>
+
+<div id="dashboard-admin" class="container-fluid d-none">
+    <div class="row">
+        <nav class="col-md-2 sidebar p-3">
+            <h5 class="text-white text-center mb-4">ADMINISTRATOR</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link active" onclick="loadTab('guru')"><i class="bi bi-people me-2"></i> Data Guru</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadTab('berkas')"><i class="bi bi-file-earmark-pdf me-2"></i> Data Berkas</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadTab('link')"><i class="bi bi-link me-2"></i> Data Link</a></li>
+                <li class="nav-item mt-4"><a class="nav-link text-danger" href="#" onclick="location.reload()"><i class="bi bi-box-arrow-left me-2"></i> Logout</a></li>
+            </ul>
+        </nav>
+        <main class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 id="page-title">Data Guru</h3>
+                <button class="btn btn-success btn-sm" onclick="exportExcel()"><i class="bi bi-file-excel"></i> Export Excel</button>
+            </div>
+            
+            <input type="text" id="search" class="form-control mb-3" placeholder="Cari data..." onkeyup="filterTable()">
+
+            <div class="card shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="mainTable">
+                        <thead class="table-dark small">
+                            <tr id="tHead"></tr>
+                        </thead>
+                        <tbody id="tBody" class="bg-white small"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold">Edit Data Guru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-email">
+                <div class="mb-2"><label>Nama</label><input type="text" id="edit-nama" class="form-control"></div>
+                <div class="mb-2"><label>NIP</label><input type="text" id="edit-nip" class="form-control"></div>
+                <div class="mb-2"><label>Pangkat</label><input type="text" id="edit-pangkat" class="form-control"></div>
+                <div class="mb-2"><label>Mapel</label><input type="text" id="edit-mapel" class="form-control"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditGuru()">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0OqVHBP6lFlXXn36SB-cJ0hH4_RQ8iuRJUrKxN3MpM0opqoekjVGtnNIwtdZiWm9hKg/exec?page=admin";
+    let allData = {};
+    let currentTab = 'guru';
+
+    function toggleLoader(s) { document.getElementById('loader').classList.toggle('d-none', !s); }
+
+    async function loginAdmin() {
+        const u = document.getElementById('adm-user').value;
+        const p = document.getElementById('adm-pass').value;
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminLogin', username: u, password: p }) }).then(r => r.json());
+        if (res.status === 'success') {
+            document.getElementById('login-admin').classList.add('d-none');
+            document.getElementById('dashboard-admin').classList.remove('d-none');
+            fetchData();
+        } else {
+            alert("Login Gagal!");
+        }
+        toggleLoader(false);
+    }
+
+    async function fetchData() {
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllData' }) }).then(r => r.json());
+        allData = res;
+        renderTable('guru');
+        toggleLoader(false);
+    }
+
+    function loadTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTable(tab);
+    }
+
+    function renderTable(type) {
+        const th = document.getElementById('tHead');
+        const tb = document.getElementById('tBody');
+        tb.innerHTML = '';
+        
+        if (type === 'guru') {
+            document.getElementById('page-title').innerText = "Data Guru";
+            th.innerHTML = "<th>Email</th><th>Nama</th><th>NIP</th><th>Pangkat</th><th>Mapel</th><th>Aksi</th>";
+            allData.guru.slice(1).forEach(row => {
+                tb.innerHTML += `
+                    <tr>
+                        <td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[6]}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick='openEdit("${row[0]}", "${row[1]}", "${row[2]}", "${row[3]}", "${row[6]}")'><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        } else if (type === 'berkas') {
+            document.getElementById('page-title').innerText = "Data Berkas Upload";
+            th.innerHTML = "<th>Email</th><th>KK</th><th>SK</th><th>KGB</th><th>Foto</th><th>Aksi</th>";
+            allData.berkas.slice(1).forEach(row => {
+                const link = (u) => u ? `<a href="${u}" target="_blank">Lihat</a>` : '-';
+                tb.innerHTML += `<tr><td>${row[0]}</td><td>${link(row[1])}</td><td>${link(row[2])}</td><td>${link(row[3])}</td><td>${link(row[4])}</td><td><button class="btn btn-sm btn-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash"></i></button></td></tr>`;
+            });
+        } else if (type === 'link') {
+            document.getElementById('page-title').innerText = "Link Kegiatan Guru";
+            th.innerHTML = "<th>Email</th><th>Judul</th><th>Link</th><th>Waktu</th><th>Aksi</th>";
+            allData.kegiatan.slice(1).forEach(row => {
+                tb.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td><a href="${row[2]}" target="_blank">Buka</a></td><td>${new Date(row[3]).toLocaleDateString()}</td><td><button class="btn btn-sm btn-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash"></i></button></td></tr>`;
+            });
+        }
+    }
+
+    // Fungsi Hapus
+    async function hapus(email) {
+        if(!confirm("Yakin hapus data guru ini (Semua data terkait akan hilang)?")) return;
+        toggleLoader(true);
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'hapusData', email }) });
+        await fetchData(); // Refresh data
+        toggleLoader(false);
+    }
+
+    // Fungsi Edit (Hanya untuk Data Guru)
+    function openEdit(email, nama, nip, pangkat, mapel) {
+        document.getElementById('edit-email').value = email;
+        document.getElementById('edit-nama').value = nama;
+        document.getElementById('edit-nip').value = nip;
+        document.getElementById('edit-pangkat').value = pangkat;
+        document.getElementById('edit-mapel').value = mapel;
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    async function saveEditGuru() {
+        const data = {
+            email: document.getElementById('edit-email').value,
+            nama: document.getElementById('edit-nama').value,
+            nip: document.getElementById('edit-nip').value,
+            pangkat: document.getElementById('edit-pangkat').value,
+            mapel: document.getElementById('edit-mapel').value,
+            // Data tanggal & tempat lahir kita biarkan tetap (atau bisa ditambahkan inputnya jika mau lengkap)
+            tmptLahir: "", 
+            tglLahir: new Date() 
+        };
+        
+        // Tutup modal dulu
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        toggleLoader(true);
+        
+        // Kita pakai fungsi simpanData yang sama, karena logika di backend adalah update jika email ada
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'simpanData', data }) });
+        await fetchData();
+        toggleLoader(false);
+    }
+
+    function filterTable() {
+        let input = document.getElementById("search").value.toLowerCase();
+        let rows = document.getElementById("tBody").getElementsByTagName("tr");
+        for (let row of rows) { row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none"; }
+    }
+
+    function exportExcel() {
+        const wb = XLSX.utils.table_to_book(document.getElementById("mainTable"));
+        XLSX.writeFile(wb, `Data_Admin_${currentTab}.xlsx`);
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
+
+

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Sekolah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { background-color: #f0f2f5; font-family: sans-serif; }
+        .login-box { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .dashboard-container { display: none; padding-bottom: 50px; }
+        .img-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <script>const API_URL = "https://script.google.com/macros/s/AKfycbzaiaxPcTEgA3CBfUdti4Yeu9E-OZPn8aICfRd-1L5x_23OlITy7BQ4VeA_LZxc9b1hbg/exec";</script>
+
+    <div id="login-view" class="container">
+        <div class="login-box text-center">
+            <h3 class="mb-3 text-primary fw-bold">Admin Login</h3>
+            <input type="text" class="form-control mb-3" id="username" placeholder="Username">
+            <input type="password" class="form-control mb-3" id="password" placeholder="Password">
+            <button onclick="handleLogin()" class="btn btn-primary w-100">Masuk</button>
+        </div>
+    </div>
+
+    <div id="dashboard-view" class="dashboard-container">
+        <nav class="navbar navbar-dark bg-primary mb-4 px-4 shadow-sm">
+            <span class="navbar-brand fw-bold">Admin Sekolah</span>
+            <button onclick="logout()" class="btn btn-light btn-sm fw-bold">Keluar</button>
+        </nav>
+
+        <div class="container">
+            <ul class="nav nav-tabs mb-4 bg-white rounded shadow-sm p-2">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-agenda" onclick="loadData('read_agenda', 'agenda')">Agenda</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-berita" onclick="loadData('read_berita', 'berita')">Berita</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-pengajar" onclick="loadData('read_pengajar', 'pengajar')">Pengajar</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-galeri" onclick="loadData('read_galeri', 'galeri')">Galeri</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-pesan" onclick="loadData('read_messages', 'pesan')">Pesan</button></li>
+            </ul>
+
+            <div class="tab-content bg-white p-4 rounded shadow-sm">
+                <div id="tab-content-area">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 id="page-title">Data</h4>
+                        <button class="btn btn-primary btn-sm" id="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> Tambah</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="main-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="formModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Form</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary w-100" onclick="submitData()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentType = 'agenda';
+        let isEdit = false;
+        let editId = '';
+        const modal = new bootstrap.Modal(document.getElementById('formModal'));
+
+        if(sessionStorage.getItem('token')) {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+            loadData('read_agenda', 'agenda');
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            fetch(API_URL + "?action=login", { method: 'POST', body: JSON.stringify({username:u, password:p}) })
+            .then(r => r.json()).then(d => {
+                if(d.status === 'success') {
+                    sessionStorage.setItem('token', d.token);
+                    location.reload();
+                } else Swal.fire('Error', 'Login Gagal', 'error');
+            });
+        }
+        function logout() { sessionStorage.clear(); location.reload(); }
+
+        function loadData(action, type) {
+            currentType = type;
+            document.getElementById('page-title').innerText = "Manajemen " + type.charAt(0).toUpperCase() + type.slice(1);
+            document.getElementById('btn-add').style.display = (type === 'pesan') ? 'none' : 'block';
+            
+            const tbody = document.getElementById('main-table');
+            tbody.innerHTML = '<tr><td class="text-center">Loading...</td></tr>';
+            
+            fetch(`${API_URL}?action=${action}`).then(r => r.json()).then(res => {
+                let html = '';
+                if(res.status === 'success' && res.data.length > 0) {
+                    if(type === 'agenda') {
+                        html = `<thead><tr><th>Judul</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>`;
+                        res.data.forEach(d => html += `<tr><td>${d.judul}</td><td>${d.tanggal}</td><td>${btnAction(d)}</td></tr>`);
+                    } else if(type === 'berita') {
+                        html = `<thead><tr><th>Gbr</th><th>Judul</th><th>Penulis</th><th>Aksi</th></tr></thead><tbody>`;
+                        res.data.forEach(d => html += `<tr><td><img src="${d.gambar}" class="img-thumb"></td><td>${d.judul}</td><td>${d.penulis}</td><td>${btnAction(d)}</td></tr>`);
+                    } else if(type === 'pengajar') {
+                        html = `<thead><tr><th>Foto</th><th>Nama</th><th>Mapel</th><th>Aksi</th></tr></thead><tbody>`;
+                        res.data.forEach(d => html += `<tr><td><img src="${d.foto}" class="img-thumb"></td><td>${d.nama}</td><td>${d.matapelajaran}</td><td>${btnAction(d)}</td></tr>`);
+                    } else if(type === 'galeri') {
+                        html = `<thead><tr><th>Foto</th><th>Judul</th><th>Aksi</th></tr></thead><tbody>`;
+                        res.data.forEach(d => html += `<tr><td><img src="${d.linkgambar}" class="img-thumb"></td><td>${d.judul}</td><td>${btnAction(d)}</td></tr>`);
+                    } else if(type === 'pesan') {
+                        html = `<thead><tr><th>Nama</th><th>Email</th><th>Pesan</th></tr></thead><tbody>`;
+                        res.data.forEach(d => html += `<tr><td>${d.nama}</td><td>${d.email}</td><td>${d.pesan}</td></tr>`);
+                    }
+                    html += '</tbody>';
+                } else html = '<tr><td class="text-center p-3">Belum ada data</td></tr>';
+                tbody.innerHTML = html;
+            });
+        }
+
+        function btnAction(data) {
+            const json = JSON.stringify(data).replace(/"/g, '&quot;');
+            return `<button class="btn btn-sm btn-warning me-1" onclick="openModal(${json})"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteData('${data.id}')"><i class="fas fa-trash"></i></button>`;
+        }
+
+        function openModal(data = null) {
+            isEdit = !!data;
+            if(data) editId = data.id;
+            let html = '';
+
+            if(currentType === 'agenda') {
+                html = `<input class="form-control mb-2" id="judul" placeholder="Judul" value="${data?.judul||''}">
+                        <input type="date" class="form-control mb-2" id="tanggal" value="${data?.tanggal ? new Date(data.tanggal).toISOString().split('T')[0] : ''}">
+                        <textarea class="form-control" id="deskripsi" placeholder="Deskripsi">${data?.deskripsi||''}</textarea>`;
+            } else if(currentType === 'berita') {
+                html = `<input class="form-control mb-2" id="judul" placeholder="Judul Berita" value="${data?.judul||''}">
+                        <input class="form-control mb-2" id="penulis" placeholder="Penulis" value="${data?.penulis||''}">
+                        <div class="mb-2">
+                            <label class="small text-muted">Gambar Utama</label>
+                            <input type="file" class="form-control" id="gambarInput">
+                        </div>
+                        <textarea class="form-control" id="isi" rows="4" placeholder="Isi Berita">${data?.isi||''}</textarea>`;
+            } else if(currentType === 'pengajar') {
+                html = `<input class="form-control mb-2" id="nama" placeholder="Nama Guru" value="${data?.nama||''}">
+                        <input class="form-control mb-2" id="matapelajaran" placeholder="Mata Pelajaran" value="${data?.matapelajaran||''}">
+                        <div class="mb-2">
+                            <label class="small text-muted">Foto Guru</label>
+                            <input type="file" class="form-control" id="fotoInput">
+                        </div>`;
+            } else if(currentType === 'galeri') {
+                html = `<input class="form-control mb-2" id="judul" placeholder="Judul / Caption" value="${data?.judul||''}">
+                        <div class="mb-2">
+                            <label class="small text-muted">Upload Foto</label>
+                            <input type="file" class="form-control" id="linkgambarInput">
+                        </div>`;
+            }
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalTitle').innerText = (isEdit ? 'Edit ' : 'Tambah ') + currentType;
+            modal.show();
+        }
+
+        async function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function submitData() {
+            let payload = {};
+            if(isEdit) payload.id = editId;
+
+            // Mapping Data
+            if(currentType === 'agenda') {
+                payload.judul = document.getElementById('judul').value;
+                payload.tanggal = document.getElementById('tanggal').value;
+                payload.deskripsi = document.getElementById('deskripsi').value;
+            } 
+            else if(currentType === 'berita') {
+                payload.judul = document.getElementById('judul').value;
+                payload.penulis = document.getElementById('penulis').value;
+                payload.isi = document.getElementById('isi').value;
+                const file = document.getElementById('gambarInput').files[0];
+                if(file) payload.gambar = await getBase64(file);
+            } 
+            else if(currentType === 'pengajar') {
+                payload.nama = document.getElementById('nama').value;
+                payload.matapelajaran = document.getElementById('matapelajaran').value;
+                const file = document.getElementById('fotoInput').files[0];
+                if(file) payload.foto = await getBase64(file);
+            } 
+            else if(currentType === 'galeri') {
+                payload.judul = document.getElementById('judul').value;
+                const file = document.getElementById('linkgambarInput').files[0];
+                if(file) payload.linkgambar = await getBase64(file);
+            }
+
+            // Validasi sederhana
+            if(!isEdit && (currentType !== 'agenda') && !payload.gambar && !payload.foto && !payload.linkgambar) {
+                Swal.fire('Peringatan', 'Mohon pilih gambar untuk diupload', 'warning');
+                return;
+            }
+
+            const action = (isEdit ? 'update_' : 'create_') + currentType;
+            Swal.fire({title:'Menyimpan ke Drive & Sheets...', text:'Mohon tunggu, sedang upload gambar', didOpen:()=>Swal.showLoading()});
+
+            try {
+                const raw = await fetch(API_URL + "?action=" + action, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await raw.json();
+                if(res.status === 'success') {
+                    Swal.fire('Sukses', 'Data berhasil disimpan!', 'success');
+                    modal.hide();
+                    loadData('read_' + currentType, currentType);
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Gagal koneksi atau file terlalu besar (Max 5MB)', 'error');
+            }
+        }
+
+        function deleteData(id) {
+            Swal.fire({title:'Hapus Data?', icon:'warning', showCancelButton:true}).then(r => {
+                if(r.isConfirmed) {
+                    fetch(API_URL + "?action=delete_" + currentType, { method: 'POST', body: JSON.stringify({id:id}) })
+                    .then(r => r.json()).then(d => {
+                        loadData('read_' + currentType, currentType);
+                        Swal.fire('Terhapus', '', 'success');
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

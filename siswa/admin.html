@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        body { background-color: #eef2f7; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { min-height: 100vh; background: #2c3e50; color: white; }
+        .nav-link { color: rgba(255,255,255,0.7); }
+        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.1); }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="d-none"><div class="spinner-border text-primary"></div></div>
+
+<div class="container vh-100 d-flex justify-content-center align-items-center" id="login-admin">
+    <div class="card p-4 shadow border-0" style="width: 350px;">
+        <h4 class="text-center fw-bold mb-3">ADMIN PANEL</h4>
+        <input type="text" id="adm-user" class="form-control mb-2" placeholder="Username">
+        <input type="password" id="adm-pass" class="form-control mb-3" placeholder="Password">
+        <button class="btn btn-dark w-100 fw-bold" onclick="loginAdmin()">MASUK</button>
+        <a href="<?= ScriptApp.getService().getUrl() ?>" class="text-center mt-3 small text-decoration-none">Ke Portal Siswa</a>
+    </div>
+</div>
+
+<div class="container-fluid d-none" id="dashboard-admin">
+    <div class="row">
+        <nav class="col-md-2 sidebar p-3">
+            <h5 class="fw-bold mb-4 text-center">ADMIN</h5>
+            <ul class="nav flex-column gap-2">
+                <li class="nav-item"><a href="#" class="nav-link active"><i class="bi bi-people me-2"></i> Data Siswa</a></li>
+                <li class="nav-item mt-5"><button onclick="location.reload()" class="btn btn-danger w-100 btn-sm">Logout</button></li>
+            </ul>
+        </nav>
+        
+        <main class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">Data Siswa</h3>
+                <div>
+                    <button onclick="exportExcel()" class="btn btn-success btn-sm me-2"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+                    <button onclick="fetchData()" class="btn btn-primary btn-sm"><i class="bi bi-arrow-clockwise"></i> Reload</button>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm p-3">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" id="search" class="form-control" placeholder="Cari Nama / NISN..." onkeyup="applyFilter()">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="filter-kelas" class="form-select" onchange="applyFilter()">
+                            <option value="">Semua Kelas</option>
+                            </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="mainTable">
+                        <thead class="table-light small">
+                            <tr><th>NISN</th><th>Nama</th><th>Kelas</th><th>HP</th><th>File</th><th>Aksi</th></tr>
+                        </thead>
+                        <tbody id="tBody" class="small bg-white">
+                            <tr><td colspan="6" class="text-center">Mengambil data...</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="data-count" class="small text-muted mt-2"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning"><h5 class="modal-title fw-bold">Edit Siswa</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="e-nisn-old">
+                <div class="mb-2"><label class="small fw-bold">NISN</label><input type="number" id="e-nisn" class="form-control"></div>
+                <div class="mb-2"><label class="small fw-bold">Nama</label><input type="text" id="e-nama" class="form-control"></div>
+                <div class="mb-2"><label class="small fw-bold">Kelas</label><input type="text" id="e-kelas" class="form-control"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveEdit()">Simpan</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyU8OG2nqzagT0Vv4xAkVvg41FQ3FM26uSJpBLB8vosRCq0oSjWjup2DVxkKKR6_YpJfw/exec";
+    let allData = [];
+    let filteredData = []; // Menyimpan data hasil filter untuk export
+
+    // Generate Filter Kelas 7A-9K
+    (function generateFilterOptions() {
+        const select = document.getElementById('filter-kelas');
+        const levels = [7, 8, 9];
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+        levels.forEach(lvl => {
+            letters.forEach(char => {
+                let opt = document.createElement('option');
+                opt.value = `${lvl}${char}`;
+                opt.innerText = `${lvl}${char}`;
+                select.appendChild(opt);
+            });
+        });
+    })();
+
+    function toggleLoader(show) { document.getElementById('loader').classList.toggle('d-none', !show); }
+
+    async function loginAdmin() {
+        const u = document.getElementById('adm-user').value;
+        const p = document.getElementById('adm-pass').value;
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminLogin', username: u, password: p }) }).then(r => r.json());
+        if(res.status === 'success') {
+            document.getElementById('login-admin').classList.add('d-none');
+            document.getElementById('dashboard-admin').classList.remove('d-none');
+            fetchData();
+        } else {
+            Swal.fire('Gagal', 'Login Salah', 'error');
+        }
+        toggleLoader(false);
+    }
+
+    async function fetchData() {
+        // Tampilkan loading skeleton di tabel
+        document.getElementById('tBody').innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat data...</td></tr>`;
+        
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllData' }) }).then(r => r.json());
+        if(res.status === 'success') {
+            allData = res.data;
+            applyFilter(); // Render tabel via filter (default semua)
+        }
+    }
+
+    // Fungsi Filter Gabungan (Search + Dropdown Kelas)
+    function applyFilter() {
+        const term = document.getElementById('search').value.toLowerCase();
+        const kelasVal = document.getElementById('filter-kelas').value;
+
+        filteredData = allData.filter(r => {
+            const matchName = r[0].toString().toLowerCase().includes(term) || r[1].toString().toLowerCase().includes(term);
+            // r[17] adalah kolom kelas (index 17)
+            const matchKelas = kelasVal === "" || (r[17] && r[17].toString() === kelasVal);
+            return matchName && matchKelas;
+        });
+
+        renderTable(filteredData);
+    }
+
+    function renderTable(data) {
+        const tb = document.getElementById('tBody');
+        tb.innerHTML = '';
+        if(data.length === 0) {
+            tb.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Data tidak ditemukan</td></tr>`;
+            document.getElementById('data-count').innerText = "";
+            return;
+        }
+
+        data.forEach(row => {
+            // Mapping: NISN=0, Nama=1, HP=7, Foto=15, Ijazah=16, Kelas=17
+            let linkHtml = "";
+            if(row[15] && row[15].length > 5) linkHtml += `<a href="${row[15]}" target="_blank" class="badge bg-info text-decoration-none me-1">Foto</a>`;
+            if(row[16] && row[16].length > 5) linkHtml += `<a href="${row[16]}" target="_blank" class="badge bg-success text-decoration-none">Ijazah</a>`;
+            if(linkHtml === "") linkHtml = "-";
+
+            tb.innerHTML += `
+                <tr>
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td><span class="badge bg-secondary">${row[17] || '-'}</span></td>
+                    <td>${row[7]}</td>
+                    <td>${linkHtml}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openEdit('${row[0]}', '${row[1]}', '${row[17]}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+        });
+        document.getElementById('data-count').innerText = `Menampilkan ${data.length} siswa`;
+    }
+
+    function exportExcel() {
+        if(filteredData.length === 0) return Swal.fire('Info', 'Tidak ada data untuk diexport', 'info');
+        
+        // Buat Array baru yang bersih untuk Excel
+        const dataForExcel = filteredData.map(row => ({
+            "NISN": row[0],
+            "Nama Lengkap": row[1],
+            "Kelas": row[17],
+            "TTL": (row[3] || "") + ", " + (row[4] || ""),
+            "Alamat": row[6],
+            "No HP": row[7],
+            "Link Foto": row[15],
+            "Link Ijazah": row[16]
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataForExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");
+        
+        // Nama file sesuai filter
+        const kelas = document.getElementById('filter-kelas').value || "Semua";
+        XLSX.writeFile(wb, `Data_Siswa_${kelas}.xlsx`);
+    }
+
+    async function hapus(nisn) {
+        if((await Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true })).isConfirmed) {
+            toggleLoader(true);
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminDelete', nisn: nisn }) });
+            fetchData();
+            toggleLoader(false);
+            Swal.fire('Dihapus', '', 'success');
+        }
+    }
+
+    function openEdit(nisn, nama, kelas) {
+        document.getElementById('e-nisn-old').value = nisn;
+        document.getElementById('e-nisn').value = nisn;
+        document.getElementById('e-nama').value = nama;
+        document.getElementById('e-kelas').value = (kelas === 'undefined' || !kelas) ? '' : kelas;
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    async function saveEdit() {
+        const data = {
+            nisnOld: document.getElementById('e-nisn-old').value,
+            nisn: document.getElementById('e-nisn').value,
+            nama: document.getElementById('e-nama').value,
+            kelas: document.getElementById('e-kelas').value
+        };
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        toggleLoader(true);
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminEdit', data: data }) }).then(r => r.json());
+        if(res.status==='success') { fetchData(); Swal.fire('Sukses', 'Data diupdate', 'success'); }
+        else Swal.fire('Gagal', res.msg, 'error');
+        toggleLoader(false);
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,1 +1,187 @@
-#
+<!DOCTYPE html>
+<html lang="id" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Guru - SMPN 13 Makassar</title>
+    
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3429/3429433.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root { --transition-speed: 0.3s; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bs-body-bg);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--bs-body-bg);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .dashboard-header {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border-radius: 0 0 40px 40px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-card {
+            border: none;
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            background: var(--bs-secondary-bg);
+            height: 100%;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            outline: 2px solid #3b82f6;
+        }
+
+        .icon-box {
+            width: 65px; height: 65px;
+            border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; margin-bottom: 25px;
+        }
+
+        .theme-switch {
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 50px;
+            background: rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        [data-bs-theme="dark"] .theme-switch { background: rgba(255,255,255,0.1); }
+
+        .stretched-link::after { border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="#">
+            <img src="https://cdn-icons-png.flaticon.com/512/3429/3429433.png" width="30" class="me-2">
+            SMPN 13 MAKASSAR
+        </a>
+        <div class="ms-auto d-flex align-items-center">
+            <div class="theme-switch me-3" id="themeToggler" onclick="toggleTheme()">
+                <i class="fa-solid fa-moon"></i>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Guru+SMP&background=1e3a8a&color=fff" class="rounded-circle border" width="38">
+        </div>
+    </div>
+</nav>
+
+<header class="dashboard-header animate__animated animate__fadeIn">
+    <div class="container text-center">
+		<span class="badge bg-light text-primary mb-3 px-3 py-2 rounded-pill shadow-sm">Portal Guru</span>
+        <h1 class="fw-bold display-6">Layanan Digital Pendidik</h1>
+        <p class="lead opacity-75">Manajemen Administrasi & Data Mandiri Guru</p>
+    </div>
+</header>
+
+<div class="container mb-5">
+    <div class="row g-4">
+	
+		<div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+            <div class="card service-card p-4 position-relative border-0 shadow-sm">
+                <div class="icon-box shadow-sm" style="background: #ffedd5; color: #c2410c;">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <h5 class="fw-bold">Data Mandiri</h5>
+                <p class="text-muted small">Perbarui profil, kepangkatan, dan data kepegawaian Anda.</p>
+                <a href="https://irwanabdullah.github.io/portalguru/" class="stretched-link"></a>
+            </div>
+        </div>
+		
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <div class="card service-card p-4 position-relative border-0 shadow-sm">
+                <div class="icon-box shadow-sm" style="background: #e0f2fe; color: #0369a1;">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h5 class="fw-bold">Presensi</h5>
+                <p class="text-muted small">Kelola kehadiran harian dan rekap otomatis pendidik.</p>
+                <a href="https://irwanabdullah.github.io/absenguru/" class="stretched-link"></a>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="card service-card p-4 position-relative border-0 shadow-sm">
+                <div class="icon-box shadow-sm" style="background: #f3e8ff; color: #7e22ce;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h5 class="fw-bold">E-Nilai</h5>
+                <p class="text-muted small">Input nilai harian, UTS dan Nilai Akhir.</p>
+                <a href="https://irwanabdullah.github.io/under_maintenence/" class="stretched-link"></a>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+            <div class="card service-card p-4 position-relative border-0 shadow-sm">
+                <div class="icon-box shadow-sm" style="background: #dcfce7; color: #15803d;">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <h5 class="fw-bold">Perizinan</h5>
+                <p class="text-muted small">Pengajuan cuti, izin sakit, dan dinas luar secara online.</p>
+                <a href="https://irwanabdullah.github.io/under_maintenence/" class="stretched-link"></a>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+<footer class="text-center py-4 mt-auto border-top bg-body-tertiary">
+    <div class="container">
+        <p class="text-muted mb-0">&copy; <span id="currentYear"></span> SMPN 13 Makassar</p>
+    </div>
+</footer>
+
+<script>
+    // Tahun Dinamis
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    // Toggle Theme (Dark Mode)
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.querySelector('#themeToggler i');
+        
+        if (html.getAttribute('data-bs-theme') === 'light') {
+            html.setAttribute('data-bs-theme', 'dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            html.setAttribute('data-bs-theme', 'light');
+            icon.classList.replace('fa-sun', 'fa-moon');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Load saved theme
+    window.onload = () => {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            document.querySelector('#themeToggler i').classList.replace('fa-moon', 'fa-sun');
+        }
+    };
+</script>
+</body>
+</html>
+

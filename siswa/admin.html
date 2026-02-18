@@ -3,102 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Portal Siswa</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        body { background-color: #eef2f7; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { min-height: 100vh; background: #2c3e50; color: white; }
-        .nav-link { color: rgba(255,255,255,0.7); }
-        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.1); }
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --bg-color: #f8f9fc;
+            --sidebar-bg: #224abe;
+        }
+        
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Poppins', sans-serif; 
+            font-size: 0.9rem;
+            overflow-x: hidden;
+        }
+
+        /* Loader */
+        #loader { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.9); z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            backdrop-filter: blur(5px);
+        }
+
+        /* Login Page */
+        .login-container {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            min-height: 100vh;
+        }
+        .login-card {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Sidebar */
+        .sidebar { 
+            min-height: 100vh; 
+            background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); 
+            color: white; 
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .nav-link { 
+            color: rgba(255,255,255,0.8); 
+            border-radius: 0.5rem;
+            margin-bottom: 5px;
+            padding: 10px 15px;
+            transition: all 0.2s;
+        }
+        .nav-link:hover, .nav-link.active { 
+            color: #4e73df; 
+            background: white; 
+            font-weight: 600;
+            transform: translateX(5px);
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        .icon-box {
+            width: 45px; height: 45px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Table */
+        .table-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .table thead th {
+            background-color: #f8f9fc;
+            border-bottom: 2px solid #e3e6f0;
+            color: #4e73df;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .badge-soft { padding: 5px 10px; border-radius: 50px; font-weight: 500; }
+        .badge-soft-success { background-color: #d1fae5; color: #065f46; }
+        .badge-soft-primary { background-color: #dbeafe; color: #1e40af; }
+
+        /* Pagination Styling */
+        .pagination .page-link {
+            border: none;
+            color: var(--secondary-color);
+            border-radius: 5px;
+            margin: 0 3px;
+            font-weight: 500;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 5px rgba(78, 115, 223, 0.4);
+        }
+        .pagination .page-link:hover {
+            background-color: #eaecf4;
+            color: var(--primary-color);
+        }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loader" class="d-none"><div class="spinner-border text-primary"></div></div>
+<div id="loader" class="d-none">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <div class="mt-2 text-muted fw-bold small">Memproses data...</div>
+</div>
 
-<div class="container vh-100 d-flex justify-content-center align-items-center" id="login-admin">
-    <div class="card p-4 shadow border-0" style="width: 350px;">
-        <h4 class="text-center fw-bold mb-3">ADMIN PANEL</h4>
-        <input type="text" id="adm-user" class="form-control mb-2" placeholder="Username">
-        <input type="password" id="adm-pass" class="form-control mb-3" placeholder="Password">
-        <button class="btn btn-dark w-100 fw-bold" onclick="loginAdmin()">MASUK</button>
-        <a href="<?= ScriptApp.getService().getUrl() ?>" class="text-center mt-3 small text-decoration-none">Ke Portal Siswa</a>
+<div class="container-fluid login-container d-flex justify-content-center align-items-center" id="login-admin">
+    <div class="card login-card p-5" style="width: 400px;">
+        <div class="text-center mb-4">
+            <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+            <h4 class="fw-bold mt-2 text-dark">Admin Login</h4>
+            <p class="text-muted small">Silakan masuk untuk mengelola data siswa</p>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label class="form-label small fw-bold text-secondary">USERNAME</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                <input type="text" id="adm-user" class="form-control border-start-0 bg-light" placeholder="Masukkan username">
+            </div>
+        </div>
+
+        <div class="form-group mb-4">
+            <label class="form-label small fw-bold text-secondary">PASSWORD</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+                <input type="password" id="adm-pass" class="form-control border-start-0 bg-light border-end-0" placeholder="Masukkan password">
+                <button class="btn btn-light border border-start-0" type="button" onclick="togglePassword()">
+                    <i class="bi bi-eye-slash" id="toggleIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2 fw-bold shadow-sm mb-3" onclick="loginAdmin()">MASUK SEKARANG</button>
+        <div class="text-center">
+            <a href="<?= ScriptApp.getService().getUrl() ?>" class="small text-decoration-none text-muted hover-link"><i class="bi bi-arrow-left"></i> Kembali ke Portal Siswa</a>
+        </div>
     </div>
 </div>
 
-<div class="container-fluid d-none" id="dashboard-admin">
+<div class="container-fluid d-none fade-in" id="dashboard-admin">
     <div class="row">
-        <nav class="col-md-2 sidebar p-3">
-            <h5 class="fw-bold mb-4 text-center">ADMIN</h5>
-            <ul class="nav flex-column gap-2">
-                <li class="nav-item"><a href="#" class="nav-link active"><i class="bi bi-people me-2"></i> Data Siswa</a></li>
-                <li class="nav-item mt-5"><button onclick="location.reload()" class="btn btn-danger w-100 btn-sm">Logout</button></li>
+        <nav class="col-md-2 sidebar p-3 d-flex flex-column">
+            <div class="text-center mb-4 mt-2">
+                <div class="bg-white rounded-circle d-inline-flex p-2 mb-2">
+                    <i class="bi bi-mortarboard-fill text-primary fs-4"></i>
+                </div>
+                <h6 class="fw-bold mb-0">Portal Admin</h6>
+                <small class="text-white-50">Manajemen Data</small>
+            </div>
+            
+            <hr class="border-white opacity-25">
+
+            <ul class="nav flex-column gap-2 flex-grow-1">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active shadow-sm"><i class="bi bi-people-fill me-2"></i> Data Siswa</a>
+                </li>
             </ul>
+
+            <div class="mt-auto">
+                <button onclick="logout()" class="btn btn-danger w-100 btn-sm shadow-sm opacity-75 hover-opacity-100">
+                    <i class="bi bi-box-arrow-left me-2"></i> Logout
+                </button>
+            </div>
         </nav>
         
-        <main class="col-md-10 p-4">
+        <main class="col-md-10 p-4" style="background-color: #f8f9fc;">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold">Data Siswa</h3>
                 <div>
-                    <button onclick="exportExcel()" class="btn btn-success btn-sm me-2"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
-                    <button onclick="fetchData()" class="btn btn-primary btn-sm"><i class="bi bi-arrow-clockwise"></i> Reload</button>
+                    <h3 class="fw-bold text-dark mb-0">Dashboard Data Siswa</h3>
+                    <p class="text-muted small mb-0">Kelola database siswa dengan mudah</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="fetchData()" class="btn btn-light border shadow-sm text-primary btn-sm px-3 fw-bold">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                    </button>
+                    <button onclick="exportExcel()" class="btn btn-success shadow-sm btn-sm px-3 fw-bold">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                    </button>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm p-3">
-                <div class="row g-2 mb-3">
-                    <div class="col-md-4">
-                        <input type="text" id="search" class="form-control" placeholder="Cari Nama / NISN..." onkeyup="applyFilter()">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-primary bg-opacity-10 text-primary me-3">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1 fw-bold text-uppercase">Total Siswa</h6>
+                                <h4 class="fw-bold mb-0 text-dark" id="stat-total">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-info bg-opacity-10 text-info me-3">
+                                <i class="bi bi-image-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1 fw-bold text-uppercase">Lengkap Foto</h6>
+                                <h4 class="fw-bold mb-0 text-dark" id="stat-foto">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box bg-success bg-opacity-10 text-success me-3">
+                                <i class="bi bi-file-earmark-check-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted small mb-1 fw-bold text-uppercase">Lengkap Ijazah</h6>
+                                <h4 class="fw-bold mb-0 text-dark" id="stat-ijazah">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card table-card p-4">
+                <div class="row g-3 mb-3 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="search" class="form-control border-start-0" placeholder="Cari Nama atau NISN..." onkeyup="applyFilter(true)">
+                        </div>
                     </div>
                     <div class="col-md-3">
-                        <select id="filter-kelas" class="form-select" onchange="applyFilter()">
+                        <select id="filter-kelas" class="form-select shadow-sm" onchange="applyFilter(true)">
                             <option value="">Semua Kelas</option>
                             </select>
                     </div>
+                    <div class="col-md-4 text-end">
+                       </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="mainTable">
-                        <thead class="table-light small">
-                            <tr><th>NISN</th><th>Nama</th><th>Kelas</th><th>HP</th><th>File</th><th>Aksi</th></tr>
+                    <table class="table table-hover align-middle w-100" id="mainTable">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">NISN</th>
+                                <th>Nama Lengkap</th>
+                                <th>Kelas</th>
+                                <th>No. HP</th>
+                                <th>Dokumen</th>
+                                <th class="text-end pe-3">Aksi</th>
+                            </tr>
                         </thead>
                         <tbody id="tBody" class="small bg-white">
-                            <tr><td colspan="6" class="text-center">Mengambil data...</td></tr>
+                            <tr><td colspan="6" class="text-center p-5 text-muted">Belum ada data dimuat.</td></tr>
                         </tbody>
                     </table>
-                    <div id="data-count" class="small text-muted mt-2"></div>
                 </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <div class="small text-muted" id="page-info">Menampilkan 0 data</div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 justify-content-end" id="pagination-container">
+                            </ul>
+                    </nav>
+                </div>
+
             </div>
         </main>
     </div>
 </div>
 
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning"><h5 class="modal-title fw-bold">Edit Siswa</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <input type="hidden" id="e-nisn-old">
-                <div class="mb-2"><label class="small fw-bold">NISN</label><input type="number" id="e-nisn" class="form-control"></div>
-                <div class="mb-2"><label class="small fw-bold">Nama</label><input type="text" id="e-nama" class="form-control"></div>
-                <div class="mb-2"><label class="small fw-bold">Kelas</label><input type="text" id="e-kelas" class="form-control"></div>
+<div class="modal fade" id="editModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning bg-gradient text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Data Siswa</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-footer"><button class="btn btn-primary" onclick="saveEdit()">Simpan</button></div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="e-nisn-old">
+                
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-1">NISN</label>
+                    <input type="number" id="e-nisn" class="form-control bg-light">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-1">NAMA LENGKAP</label>
+                    <input type="text" id="e-nama" class="form-control bg-light">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="small fw-bold text-muted mb-1">KELAS</label>
+                    <input type="text" id="e-kelas" class="form-control bg-light" placeholder="Contoh: 7A">
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary btn-sm px-4" onclick="saveEdit()">Simpan Perubahan</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyU8OG2nqzagT0Vv4xAkVvg41FQ3FM26uSJpBLB8vosRCq0oSjWjup2DVxkKKR6_YpJfw/exec";
+    
+    // Global Variables
     let allData = [];
-    let filteredData = []; // Menyimpan data hasil filter untuk export
+    let filteredData = []; 
+    
+    // Pagination Configuration
+    let currentPage = 1;
+    const itemsPerPage = 20;
 
-    // Generate Filter Kelas 7A-9K
+    // 1. Generate Filter Kelas 7A-9K
     (function generateFilterOptions() {
         const select = document.getElementById('filter-kelas');
         const levels = [7, 8, 9];
@@ -107,91 +350,224 @@
             letters.forEach(char => {
                 let opt = document.createElement('option');
                 opt.value = `${lvl}${char}`;
-                opt.innerText = `${lvl}${char}`;
+                opt.innerText = `Kelas ${lvl}${char}`;
                 select.appendChild(opt);
             });
         });
     })();
 
+    // 2. UI Helpers
     function toggleLoader(show) { document.getElementById('loader').classList.toggle('d-none', !show); }
+    
+    function togglePassword() {
+        const input = document.getElementById('adm-pass');
+        const icon = document.getElementById('toggleIcon');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        }
+    }
 
+    function logout() {
+        Swal.fire({
+            title: 'Logout?',
+            text: "Anda akan keluar dari sesi admin.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Logout'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                location.reload();
+            }
+        });
+    }
+
+    // 3. Login Logic
     async function loginAdmin() {
         const u = document.getElementById('adm-user').value;
         const p = document.getElementById('adm-pass').value;
+        if(!u || !p) return Swal.fire('Error', 'Username dan Password wajib diisi', 'error');
+
         toggleLoader(true);
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminLogin', username: u, password: p }) }).then(r => r.json());
-        if(res.status === 'success') {
-            document.getElementById('login-admin').classList.add('d-none');
-            document.getElementById('dashboard-admin').classList.remove('d-none');
-            fetchData();
-        } else {
-            Swal.fire('Gagal', 'Login Salah', 'error');
+        try {
+            const res = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'adminLogin', username: u, password: p }) 
+            }).then(r => r.json());
+
+            if(res.status === 'success') {
+                const loginEl = document.getElementById('login-admin');
+                const dashEl = document.getElementById('dashboard-admin');
+                
+                loginEl.style.opacity = '0';
+                setTimeout(() => {
+                    loginEl.classList.add('d-none');
+                    dashEl.classList.remove('d-none');
+                    fetchData();
+                }, 300);
+            } else {
+                Swal.fire('Login Gagal', 'Username atau Password salah.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Gagal terhubung ke server.', 'error');
         }
         toggleLoader(false);
     }
 
+    // 4. Data Fetching
     async function fetchData() {
-        // Tampilkan loading skeleton di tabel
-        document.getElementById('tBody').innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat data...</td></tr>`;
+        document.getElementById('tBody').innerHTML = `<tr><td colspan="6" class="text-center text-muted p-5"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><br>Sedang mengambil data terbaru...</td></tr>`;
         
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllData' }) }).then(r => r.json());
-        if(res.status === 'success') {
-            allData = res.data;
-            applyFilter(); // Render tabel via filter (default semua)
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllData' }) }).then(r => r.json());
+            if(res.status === 'success') {
+                allData = res.data;
+                applyFilter(true); // Reset to page 1
+            } else {
+                document.getElementById('tBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">Gagal memuat data</td></tr>`;
+            }
+        } catch (e) {
+            console.error(e);
         }
     }
 
-    // Fungsi Filter Gabungan (Search + Dropdown Kelas)
-    function applyFilter() {
+    // 5. Filtering & Pagination Logic
+    function applyFilter(resetPage = false) {
+        if (resetPage) currentPage = 1;
+
         const term = document.getElementById('search').value.toLowerCase();
         const kelasVal = document.getElementById('filter-kelas').value;
 
         filteredData = allData.filter(r => {
             const matchName = r[0].toString().toLowerCase().includes(term) || r[1].toString().toLowerCase().includes(term);
-            // r[17] adalah kolom kelas (index 17)
             const matchKelas = kelasVal === "" || (r[17] && r[17].toString() === kelasVal);
             return matchName && matchKelas;
         });
 
-        renderTable(filteredData);
+        updateStatistics(filteredData);
+        renderTable(); // Render based on current pagination
     }
 
-    function renderTable(data) {
+    function changePage(page) {
+        if (page < 1 || page > Math.ceil(filteredData.length / itemsPerPage)) return;
+        currentPage = page;
+        renderTable();
+    }
+
+    function updateStatistics(data) {
+        const total = data.length;
+        const fotoCount = data.filter(r => r[15] && r[15].toString().length > 5).length;
+        const ijazahCount = data.filter(r => r[16] && r[16].toString().length > 5).length;
+
+        document.getElementById('stat-total').innerText = total;
+        document.getElementById('stat-foto').innerText = fotoCount;
+        document.getElementById('stat-ijazah').innerText = ijazahCount;
+    }
+
+    // 6. Rendering Table with Pagination
+    function renderTable() {
         const tb = document.getElementById('tBody');
         tb.innerHTML = '';
-        if(data.length === 0) {
-            tb.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Data tidak ditemukan</td></tr>`;
-            document.getElementById('data-count').innerText = "";
+        
+        if(filteredData.length === 0) {
+            tb.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data tidak ditemukan</td></tr>`;
+            document.getElementById('page-info').innerText = "0 Data";
+            document.getElementById('pagination-container').innerHTML = '';
             return;
         }
 
-        data.forEach(row => {
-            // Mapping: NISN=0, Nama=1, HP=7, Foto=15, Ijazah=16, Kelas=17
-            let linkHtml = "";
-            if(row[15] && row[15].length > 5) linkHtml += `<a href="${row[15]}" target="_blank" class="badge bg-info text-decoration-none me-1">Foto</a>`;
-            if(row[16] && row[16].length > 5) linkHtml += `<a href="${row[16]}" target="_blank" class="badge bg-success text-decoration-none">Ijazah</a>`;
-            if(linkHtml === "") linkHtml = "-";
+        // Calculate start and end indices
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+
+        // Render Rows
+        paginatedData.forEach(row => {
+            let fotoBtn = (row[15] && row[15].length > 5) 
+                ? `<a href="${row[15]}" target="_blank" class="badge badge-soft-primary text-decoration-none me-1" title="Lihat Foto"><i class="bi bi-person-bounding-box"></i> Foto</a>` 
+                : '<span class="text-muted small me-1">-</span>';
+                
+            let ijazahBtn = (row[16] && row[16].length > 5) 
+                ? `<a href="${row[16]}" target="_blank" class="badge badge-soft-success text-decoration-none" title="Lihat Ijazah"><i class="bi bi-file-earmark-text"></i> Ijazah</a>` 
+                : '<span class="text-muted small">-</span>';
 
             tb.innerHTML += `
                 <tr>
-                    <td>${row[0]}</td>
-                    <td>${row[1]}</td>
-                    <td><span class="badge bg-secondary">${row[17] || '-'}</span></td>
+                    <td class="ps-3 fw-medium">${row[0]}</td>
+                    <td class="fw-bold text-dark">${row[1]}</td>
+                    <td><span class="badge bg-secondary rounded-pill px-3">${row[17] || 'Unset'}</span></td>
                     <td>${row[7]}</td>
-                    <td>${linkHtml}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="openEdit('${row[0]}', '${row[1]}', '${row[17]}')"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash"></i></button>
+                    <td>${fotoBtn} ${ijazahBtn}</td>
+                    <td class="text-end pe-3">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-warning" onclick="openEdit('${row[0]}', '${row[1]}', '${row[17]}')"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="hapus('${row[0]}')"><i class="bi bi-trash-fill"></i></button>
+                        </div>
                     </td>
                 </tr>`;
         });
-        document.getElementById('data-count').innerText = `Menampilkan ${data.length} siswa`;
+
+        // Update Info Text
+        const showEnd = Math.min(endIndex, filteredData.length);
+        document.getElementById('page-info').innerText = `Menampilkan ${startIndex + 1} - ${showEnd} dari ${filteredData.length} data`;
+
+        // Render Pagination Buttons
+        renderPaginationButtons();
     }
 
+    function renderPaginationButtons() {
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        const container = document.getElementById('pagination-container');
+        container.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        // Previous Button
+        container.innerHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})"><i class="bi bi-chevron-left"></i></a>
+            </li>`;
+
+        // Page Numbers (Simple logic: Show all if < 7, otherwise smart truncate can be added, keeping simple for now)
+        // Note: For very large datasets, you might want to limit visible page numbers.
+        // Simple version for now:
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+             container.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(1)">1</a></li>`;
+             if(startPage > 2) container.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            container.innerHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>`;
+        }
+
+        if (endPage < totalPages) {
+             if(endPage < totalPages - 1) container.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+             container.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a></li>`;
+        }
+
+        // Next Button
+        container.innerHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})"><i class="bi bi-chevron-right"></i></a>
+            </li>`;
+    }
+
+    // 7. Actions (Export, Delete, Edit)
     function exportExcel() {
         if(filteredData.length === 0) return Swal.fire('Info', 'Tidak ada data untuk diexport', 'info');
         
-        // Buat Array baru yang bersih untuk Excel
         const dataForExcel = filteredData.map(row => ({
             "NISN": row[0],
             "Nama Lengkap": row[1],
@@ -207,18 +583,31 @@
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Data Siswa");
         
-        // Nama file sesuai filter
         const kelas = document.getElementById('filter-kelas').value || "Semua";
-        XLSX.writeFile(wb, `Data_Siswa_${kelas}.xlsx`);
+        XLSX.writeFile(wb, `Data_Siswa_${kelas}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
     async function hapus(nisn) {
-        if((await Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true })).isConfirmed) {
+        const result = await Swal.fire({ 
+            title: 'Hapus Data?', 
+            text: `Data NISN ${nisn} akan dihapus permanen.`, 
+            icon: 'warning', 
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!'
+        });
+
+        if(result.isConfirmed) {
             toggleLoader(true);
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminDelete', nisn: nisn }) });
-            fetchData();
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminDelete', nisn: nisn }) });
+                fetchData(); // Refresh table
+                Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+            } catch (e) {
+                Swal.fire('Gagal', 'Terjadi kesalahan jaringan', 'error');
+            }
             toggleLoader(false);
-            Swal.fire('Dihapus', '', 'success');
         }
     }
 
@@ -237,11 +626,23 @@
             nama: document.getElementById('e-nama').value,
             kelas: document.getElementById('e-kelas').value
         };
+        
+        if(!data.nisn || !data.nama) return Swal.fire('Peringatan', 'NISN dan Nama tidak boleh kosong', 'warning');
+
         bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
         toggleLoader(true);
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminEdit', data: data }) }).then(r => r.json());
-        if(res.status==='success') { fetchData(); Swal.fire('Sukses', 'Data diupdate', 'success'); }
-        else Swal.fire('Gagal', res.msg, 'error');
+        
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'adminEdit', data: data }) }).then(r => r.json());
+            if(res.status==='success') { 
+                fetchData(); 
+                Swal.fire('Berhasil', 'Data siswa berhasil diperbarui', 'success'); 
+            } else { 
+                Swal.fire('Gagal', res.msg, 'error'); 
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Gagal menghubungi server', 'error');
+        }
         toggleLoader(false);
     }
 </script>

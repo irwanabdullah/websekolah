@@ -27,9 +27,17 @@
             border: 4px solid white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            overflow: hidden; 
         }
         .profile-img-container:hover { transform: scale(1.02); border-color: #667eea; }
         .profile-placeholder-icon { font-size: 4rem; color: #94a3b8; }
+        
+        /* Style untuk gambar asli agar pas di kotak */
+        .profile-real-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; }
     </style>
@@ -226,16 +234,41 @@
         document.getElementById('d-nisn').innerText = "NISN: " + data.nisn;
         document.getElementById('d-alamat-singkat').innerText = data.alamat || "-";
         
-        // Ubah warna ikon placeholder jika foto ada
-        const icon = document.querySelector('.profile-placeholder-icon');
-        const text = document.querySelector('.profile-img-container small');
+        // --- PERBAIKAN LOGIKA URL FOTO (Googleusercontent) ---
+        const container = document.getElementById('foto-container');
+        
+        // Reset container content
+        container.innerHTML = '<i class="bi bi-person-circle profile-placeholder-icon"></i><small class="fw-bold text-primary mt-2">Lihat Foto</small>';
+
         if(data.foto && data.foto.length > 5) {
-            icon.className = "bi bi-check-circle-fill profile-placeholder-icon text-success";
-            text.innerText = "Buka Foto";
+            // 1. Ambil ID File dari URL Google Drive menggunakan Regex
+            const idMatch = data.foto.match(/[-\w]{25,}/);
+            
+            if (idMatch) {
+                const fileId = idMatch[0];
+                
+                // 2. Susun URL baru menggunakan domain googleusercontent
+                // Format: https://lh3.googleusercontent.com/d/{FILE_ID}
+                // Ini memungkinkan gambar dari Drive ditampilkan langsung sebagai <img>
+                const directLink = `https://lh3.googleusercontent.com/d/${fileId}`;
+                
+                // 3. Tampilkan gambar
+                container.innerHTML = `<img src="${directLink}" class="profile-real-img" alt="Foto Siswa" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<i class=\\'bi bi-exclamation-circle text-danger fs-1\\'></i><small>Gagal Muat</small>'">`;
+            } else {
+                // Fallback jika ID tidak ditemukan tapi URL ada
+                const icon = container.querySelector('.profile-placeholder-icon');
+                const text = container.querySelector('small');
+                icon.className = "bi bi-check-circle-fill profile-placeholder-icon text-success";
+                text.innerText = "Buka Foto";
+            }
         } else {
+            // Jika kosong
+            const icon = container.querySelector('.profile-placeholder-icon');
+            const text = container.querySelector('small');
             icon.className = "bi bi-person-circle profile-placeholder-icon";
             text.innerText = "Belum Ada";
         }
+        // --- END LOGIKA FOTO ---
 
         document.getElementById('i-nama').value = data.nama;
         document.getElementById('i-ttl').value = (data.tmpLahir || "") + ", " + (data.tglLahir || "");
@@ -303,44 +336,15 @@
     function logout() { currentUser = {}; location.reload(); }
 </script>
 
-
 <script>
-// Disable klik kanan
-document.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-});
-
-// Disable shortcut keyboard tertentu
+// Disable klik kanan dan inspect
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 document.addEventListener('keydown', function (e) {
-
-    // F12
-    if (e.key === "F12") {
-        e.preventDefault();
-    }
-
-    // Ctrl+Shift+I
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-    }
-
-    // Ctrl+Shift+J
-    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-        e.preventDefault();
-    }
-
-    // Ctrl+U (View Source)
-    if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-    }
-
-    // Ctrl+Shift+C (Inspect Element)
-    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+    if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'u')) {
         e.preventDefault();
     }
 });
 </script>
-
-
 
 </body>
 </html>

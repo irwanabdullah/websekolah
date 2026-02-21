@@ -3,86 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Rekap Absensi - SMPN 13 Makassar</title>
+    <title>Admin Dashboard - Presensi SMPN 13 Makassar</title>
+    <link rel="icon" type="image/png" href="https://drive.google.com/uc?export=view&id=150voQnZGz4LUtrxFgPLCKY2LGGqF2ABB">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        body { 
+            background-color: #f4f7fa; 
+            font-family: 'Poppins', sans-serif; 
+            color: #333;
+        }
+        
+        /* Tema Warna Custom */
+        .text-primary-custom { color: #4e73df; }
+        .bg-primary-custom { background-color: #4e73df; color: white; }
+        .btn-primary-custom { background-color: #4e73df; color: white; border: none; }
+        .btn-primary-custom:hover { background-color: #2e59d9; color: white; }
+
+        /* Card & Shadow Styles */
+        .card-custom { 
+            border: none; 
+            border-radius: 1rem; 
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15); 
+            background: #fff;
+        }
+        
+        /* Halaman Login */
+        .login-bg {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 1rem 3rem rgba(0,0,0,0.2);
+            background: #fff;
+        }
+        .login-icon {
+            font-size: 3rem;
+            color: #4e73df;
+            margin-bottom: 1rem;
+        }
+
+        /* Navbar Dashboard */
+        .navbar-custom {
+            background: #fff;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 1rem 2rem;
+        }
+
+        /* DataTables Customization */
+        .table-hover tbody tr:hover { background-color: #f8f9fc; }
+        table.dataTable thead th {
+            background-color: #f8f9fc;
+            color: #4e73df;
+            border-bottom: 2px solid #e3e6f0;
+            font-weight: 600;
+        }
+        .foto-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e3e6f0;
+            transition: transform 0.2s;
+        }
+        .foto-thumbnail:hover {
+            transform: scale(1.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
         .hidden { display: none !important; }
-        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="adminLogin" class="login-container">
-    <div class="card p-4" style="width: 100%; max-width: 400px;">
-        <div class="text-center mb-4">
-            <h4 class="fw-bold">Login Admin</h4>
-            <p class="text-muted small">Akses Rekapitulasi Presensi</p>
+<div id="adminLogin" class="login-bg">
+    <div class="login-card text-center">
+        <i class="fa-solid fa-shield-halved login-icon"></i>
+        <h3 class="fw-bold mb-1">Admin Panel</h3>
+        <p class="text-muted small mb-4">Sistem E-Presensi SMPN 13 Makassar</p>
+        
+        <div class="input-group mb-3">
+            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
+            <input type="text" id="adminUser" class="form-control border-start-0" placeholder="Username Admin">
         </div>
-        <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" id="adminUser" class="form-control" placeholder="admin">
+        <div class="input-group mb-4">
+            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
+            <input type="password" id="adminPass" class="form-control border-start-0" placeholder="••••••••">
         </div>
-        <div class="mb-4">
-            <label class="form-label">Password</label>
-            <input type="password" id="adminPass" class="form-control" placeholder="••••••••">
-        </div>
-        <button class="btn btn-dark w-100 py-2" onclick="cekLoginAdmin()">Masuk</button>
+        <button class="btn btn-primary-custom w-100 py-2 rounded-3 fw-semibold" onclick="cekLoginAdmin()">
+            <i class="fa-solid fa-right-to-bracket me-2"></i> MASUK
+        </button>
     </div>
 </div>
 
-<div id="adminDashboard" class="container mt-4 hidden">
-    <div class="card p-4 mb-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+<div id="adminDashboard" class="hidden">
+    
+    <nav class="navbar navbar-custom sticky-top mb-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-school fs-3 text-primary-custom me-3"></i>
             <div>
-                <h4 class="fw-bold mb-0">Rekap Absensi Guru</h4>
-                <p class="text-muted small">SMPN 13 Makassar</p>
-            </div>
-            <div class="d-flex gap-2 mt-3 mt-md-0">
-                <button class="btn btn-outline-danger btn-sm" onclick="downloadPDF()">
-                    <i class="bi bi-file-earmark-pdf"></i> Download PDF
-                </button>
-                <button class="btn btn-primary btn-sm" onclick="muatData()">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-                <button class="btn btn-light btn-sm text-danger" onclick="location.reload()">
-                    <i class="bi bi-power"></i> Keluar
-                </button>
+                <h5 class="mb-0 fw-bold">Dashboard Admin</h5>
+                <span class="text-muted small">SMPN 13 Makassar</span>
             </div>
         </div>
-        
-		<div class="row mb-4">
-			<div class="col-md-3 mb-2">
-				<label class="form-label small fw-bold text-primary">Filter Bulan</label>
-				<input type="month" id="filterBulan" class="form-control" onchange="filterBulan()">
-			</div>
-			<div class="col-md-3 mb-2">
-				<label class="form-label small fw-bold text-success">Filter Per Hari (Tanggal)</label>
-				<input type="date" id="filterTanggal" class="form-control" onchange="filterHari()">
-			</div>
-			<div class="col-md-2 mb-2 d-flex align-items-end">
-				<button class="btn btn-secondary btn-sm w-100" onclick="resetFilter()">Reset Filter</button>
-			</div>
-		</div>
+        <button class="btn btn-danger btn-sm px-3 rounded-pill" onclick="location.reload()">
+            <i class="fa-solid fa-power-off me-1"></i> Keluar
+        </button>
+    </nav>
 
-        <div class="table-responsive">
-            <table id="tabelAbsen" class="table table-hover w-100">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Nama</th>
-                        <th>NIP</th>
-                        <th>Waktu</th>
-                        <th>Status</th>
-                        <th>Jarak</th>
-                    </tr>
-                </thead>
-                <tbody id="isiTabel"></tbody>
-            </table>
+    <div class="container-fluid px-4 pb-5">
+        
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <h4 class="fw-bold text-gray-800 mb-0">Rekapitulasi Kehadiran</h4>
+                <p class="text-muted small mb-0">Kelola dan pantau absensi guru secara real-time.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-primary-custom me-2 shadow-sm" onclick="muatData()">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Segarkan Data
+                </button>
+                <button class="btn btn-success shadow-sm" onclick="downloadPDF()">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Ekspor PDF
+                </button>
+            </div>
         </div>
+
+        <div class="card card-custom p-3 mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted mb-1"><i class="fa-regular fa-calendar-days me-1"></i> Filter Bulan</label>
+                    <input type="month" id="filterBulan" class="form-control form-control-sm" onchange="filterBulan()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted mb-1"><i class="fa-regular fa-calendar-check me-1"></i> Filter Tanggal Spesifik</label>
+                    <input type="date" id="filterTanggal" class="form-control form-control-sm" onchange="filterHari()">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-secondary btn-sm w-100" onclick="resetFilter()">
+                        <i class="fa-solid fa-filter-circle-xmark me-1"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-custom p-4">
+            <div class="table-responsive">
+                <table id="tabelAbsen" class="table table-hover align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 5%;">No</th>
+                            <th class="text-center" style="width: 10%;">Foto</th>
+                            <th>Nama Guru</th>
+                            <th>NIP</th>
+                            <th>Waktu Kehadiran</th>
+                            <th class="text-center">Status</th>
+                            <th>Jarak GPS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="isiTabel">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -94,8 +188,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-    // GANTI DENGAN URL WEB APP KAMU
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyH_9E-EpUdmvk42X2u-eZYQaOposXu957IIRrfKv_bKwitDrdCgtOSrc5NrIM1kzDe/exec";
+    // PENTING: PASTIKAN URL WEB APP INI BENAR
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzm0XDek-K-7QBEVvjaq1jwBdFfYdvfzISJk4NhtJd9UJfGfKOyI-_RSTOxva_kyz3X/exec";
     let allData = [];
 
     // 1. SISTEM LOGIN ADMIN
@@ -103,18 +197,23 @@
         const u = document.getElementById('adminUser').value;
         const p = document.getElementById('adminPass').value;
 
-        if (u === "admin" && p === "admin123") {
+        if (u === "admin" && p === "admin@123") {
             document.getElementById('adminLogin').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             muatData();
         } else {
-            Swal.fire('Gagal', 'Username atau Password Admin salah!', 'error');
+            Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Username atau Password salah!', confirmButtonColor: '#4e73df' });
         }
     }
 
+    // Mengizinkan tekan "Enter" untuk login
+    document.getElementById("adminPass").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") { cekLoginAdmin(); }
+    });
+
     // 2. AMBIL DATA DARI GOOGLE SHEETS
     async function muatData() {
-        Swal.fire({ title: 'Mengambil data...', didOpen: () => { Swal.showLoading(); } });
+        Swal.fire({ title: 'Menarik Data...', html: 'Mengambil data terbaru dari server.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
         
         try {
             const response = await fetch(WEB_APP_URL, {
@@ -125,92 +224,169 @@
             tampilkanData(allData);
             Swal.close();
         } catch (error) {
-            Swal.fire('Error', 'Gagal memuat data dari Spreadsheet', 'error');
+            Swal.fire('Kesalahan Koneksi', 'Gagal memuat data dari Spreadsheet', 'error');
         }
     }
 
-    // 3. TAMPILKAN DATA KE TABEL
+   // 3. TAMPILKAN DATA KE TABEL
     function tampilkanData(data) {
-    let html = "";
-    data.forEach(row => {
-        // Cek nama kolom di Spreadsheet Anda (Beri perhatian pada Huruf Besar/Kecil)
-        // Kita gunakan operator || (atau) untuk mengantisipasi perbedaan nama kolom
-        const nama = row["Nama"] || row["nama"] || "-";
-        const nip = row["NIP"] || row["nip"] || "-";
-        const waktu = row["Waktu"] || row["waktu"] || row["Tanggal"] || "-";
-        const status = row["Status"] || row["status"] || "-";
-        const jarak = row["Jarak"] || row["jarak"] || row["Jarak (Meter)"] || "-";
+        let html = "";
+        let no = 1;
+        
+        data.forEach(row => {
+            // Tangkap data dari kolom Spreadsheet
+            const nama = row["Nama"] || row["nama"] || "-";
+            const nip = row["NIP"] || row["nip"] || "-";
+            
+            // PERUBAHAN 1: Tambahkan penangkap kolom "Timestamp" (bawaan Google Form)
+            let waktu = row["Timestamp"] || row["timestamp"] || row["Waktu"] || row["waktu"] || row["Tanggal"] || "-";
+            
+            // Format waktu jika API mengirim format ISO (mengandung 'T' dan 'Z')
+            // agar tampilannya rapi seperti di database (WITA)
+            if (typeof waktu === 'string' && waktu.includes('T') && waktu.includes('Z')) {
+                const dateObj = new Date(waktu);
+                // Menyesuaikan dengan format lokal Indonesia
+                waktu = dateObj.toLocaleString('id-ID'); 
+            }
 
-        html += `<tr>
-            <td>${nama}</td>
-            <td>${nip}</td>
-            <td>${waktu}</td>
-            <td><span class="badge bg-success">${status}</span></td>
-            <td>${jarak}</td>
-        </tr>`;
-    });
-    document.getElementById('isiTabel').innerHTML = html;
-    
-    // Refresh DataTables
-    if ($.fn.DataTable.isDataTable('#tabelAbsen')) {
-        $('#tabelAbsen').DataTable().destroy();
-    }
-    $('#tabelAbsen').DataTable({
-        "order": [[2, "desc"]],
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json"
+            const status = row["Status"] || row["status"] || "Hadir";
+            const jarak = row["Jarak"] || row["jarak"] || row["Jarak (Meter)"] || "-";
+            const fotoUrl = row["Foto"] || row["foto"] || row["Link Foto"] || row["Link"] || "";
+
+            // PERUBAHAN 2: Logika Ekstrak ID Google Drive untuk memunculkan gambar
+            let fotoElemen = `<span class="badge bg-secondary opacity-50"><i class="fa-solid fa-image-slash"></i></span>`;
+            
+            if (fotoUrl && fotoUrl.includes("http")) {
+                let imgUrl = fotoUrl; // Default
+                let fileId = "";
+                
+                // Ekstrak ID dari berbagai format link Google Drive
+                if (fotoUrl.includes("id=")) {
+                    fileId = fotoUrl.split("id=")[1].split("&")[0];
+                } else if (fotoUrl.includes("file/d/")) {
+                    fileId = fotoUrl.split("file/d/")[1].split("/")[0];
+                }
+                
+                // Jika ID ditemukan, ubah ke link khusus render gambar Google Drive
+                if (fileId) {
+                    imgUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                }
+
+                // Menggunakan class foto-thumbnail yang sudah ada di CSS Anda
+                fotoElemen = `
+                    <a href="${fotoUrl}" target="_blank" title="Klik untuk lihat ukuran penuh">
+                        <img src="${imgUrl}" class="foto-thumbnail" alt="Foto Absen">
+                    </a>
+                `;
+            }
+
+            // Styling Status
+            let statusBadge = status.toLowerCase().includes("hadir") 
+                ? `<span class="badge bg-success bg-opacity-10 text-success border border-success">${status}</span>`
+                : `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">${status}</span>`;
+
+            // Susun baris tabel
+            html += `<tr>
+                <td class="text-center text-muted fw-bold">${no++}</td>
+                <td class="text-center">${fotoElemen}</td> 
+                <td class="fw-semibold text-dark">${nama}</td>
+                <td>${nip}</td>
+                <td><i class="fa-regular fa-clock text-muted me-1"></i> ${waktu}</td>
+                <td class="text-center">${statusBadge}</td>
+                <td><i class="fa-solid fa-location-dot text-danger me-1"></i> ${jarak}</td>
+            </tr>`;
+        });
+        
+        document.getElementById('isiTabel').innerHTML = html;
+        
+        // Refresh DataTables agar pencarian/pagination berfungsi
+        if ($.fn.DataTable.isDataTable('#tabelAbsen')) {
+            $('#tabelAbsen').DataTable().destroy();
         }
-    });
-}
-
-    // Filter Berdasarkan Bulan (YYYY-MM)
+        $('#tabelAbsen').DataTable({
+            "order": [[4, "desc"]], // Mengurutkan dari absen terbaru
+            "pageLength": 10,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json",
+                "search": "_INPUT_",
+                "searchPlaceholder": "Cari data guru..."
+            }
+        });
+    }
+	
+    // 4. FILTERING
 	function filterBulan() {
-		document.getElementById('filterTanggal').value = ""; // Reset filter hari
+		document.getElementById('filterTanggal').value = ""; 
 		const bln = document.getElementById('filterBulan').value;
 		if (!bln) return tampilkanData(allData);
 		
 		const filtered = allData.filter(r => {
 			const tglRow = r["Waktu"] || r["waktu"] || "";
-			return tglRow.startsWith(bln);
+			return String(tglRow).startsWith(bln);
 		});
 		tampilkanData(filtered);
 	}
 
-	// Filter Berdasarkan Hari/Tanggal (YYYY-MM-DD)
 	function filterHari() {
-		document.getElementById('filterBulan').value = ""; // Reset filter bulan
+		document.getElementById('filterBulan').value = ""; 
 		const tgl = document.getElementById('filterTanggal').value;
 		if (!tgl) return tampilkanData(allData);
 		
 		const filtered = allData.filter(r => {
 			const tglRow = r["Waktu"] || r["waktu"] || "";
-			// Kita bandingkan 10 karakter pertama (YYYY-MM-DD)
-			return tglRow.substring(0, 10) === tgl;
+			return String(tglRow).substring(0, 10) === tgl;
 		});
 		tampilkanData(filtered);
 	}
 
-// Fungsi Reset untuk mengembalikan semua data
-function resetFilter() {
-    document.getElementById('filterBulan').value = "";
-    document.getElementById('filterTanggal').value = "";
-    tampilkanData(allData);
-}
+    function resetFilter() {
+        document.getElementById('filterBulan').value = "";
+        document.getElementById('filterTanggal').value = "";
+        tampilkanData(allData);
+    }
 
-    // 5. DOWNLOAD PDF (JS-PDF)
+    // 5. DOWNLOAD PDF (jsPDF + autoTable)
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF('l', 'mm', 'a4'); // Format Landscape untuk tabel panjang
         
-        doc.text("Laporan Absensi Guru SMPN 13 Makassar", 14, 15);
+        // Kop Laporan
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text("Laporan Rekapitulasi Presensi Guru", 14, 15);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("SMPN 13 Makassar", 14, 22);
+        
         doc.setFontSize(10);
-        doc.text("Tanggal Cetak: " + new Date().toLocaleString(), 14, 22);
+        doc.setTextColor(100);
+        doc.text("Dicetak pada: " + new Date().toLocaleString('id-ID'), 14, 28);
 
+        // Ekspor Tabel (Mengabaikan gambar foto agar PDF tidak error/terlalu besar)
         doc.autoTable({
             html: '#tabelAbsen',
-            startY: 30,
-            theme: 'striped',
-            headStyles: { fillColor: [40, 40, 40] }
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [78, 115, 223] }, // Warna biru primary
+            alternateRowStyles: { fillColor: [248, 249, 252] },
+            columns: [
+                { header: 'No', dataKey: 0 },
+                // Kolom index 1 (Foto) sengaja dilewati agar tidak berantakan di PDF
+                { header: 'Nama Guru', dataKey: 2 },
+                { header: 'NIP', dataKey: 3 },
+                { header: 'Waktu Kehadiran', dataKey: 4 },
+                { header: 'Status', dataKey: 5 },
+                { header: 'Jarak GPS', dataKey: 6 }
+            ],
+            // Membersihkan tag HTML dari text sebelum dicetak ke PDF
+            didParseCell: function(data) {
+                if (data.section === 'body') {
+                    // Jika sel berupa objek HTML (seperti badge status), ubah ke text mentah
+                    if (typeof data.cell.raw === 'object' && data.cell.raw !== null) {
+                       data.cell.text = data.cell.raw.innerText || data.cell.raw.textContent;
+                    }
+                }
+            }
         });
 
         doc.save(`Rekap_Absen_${new Date().getTime()}.pdf`);
@@ -218,5 +394,4 @@ function resetFilter() {
 </script>
 
 </body>
-
 </html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin CBT Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root { --primary: #4f46e5; --bg: #f3f4f6; --text: #1f2937; }
+        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
+        
+        /* --- LOGIN LAYOUT (Tengah) --- */
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1); background: white; padding: 2rem; width: 100%; max-width: 400px; }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .sidebar { background: #1e1b4b; min-height: 100vh; color: white; width: 260px; position: fixed; top: 0; left: 0; z-index: 1000; }
+        .nav-link { color: #c7d2fe; padding: 12px 20px; border-radius: 10px; margin-bottom: 5px; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: #4338ca; color: white; font-weight: 600; }
+        
+        /* Area Konten Utama */
+        .main-content { 
+            margin-left: 260px; /* Memberi jarak untuk sidebar */
+            padding: 30px; 
+            padding-bottom: 300px !important; /* Ruang EXTRA LEBAR di bawah agar scroll tidak mentok */
+            min-height: 100vh;
+        }
+
+        .card-dash { border: none; border-radius: 16px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .hidden { display: none !important; }
+
+        /* --- QUILL EDITOR CUSTOM --- */
+        .editor-container { background: white; border-radius: 0 0 8px 8px; }
+        
+        /* 1. Editor Soal (Ukuran Normal) */
+        #editor-q .ql-editor { min-height: 120px; max-height: 300px; overflow-y: auto; font-size: 16px; }
+
+        /* 2. Editor Pilihan Jawaban (SANGAT COMPACT & KECIL) */
+        .option-box .ql-editor { 
+            height: 50px !important;      /* Tinggi dipaksa 50px */
+            min-height: 50px !important;
+            max-height: 50px !important;
+            overflow-y: auto;             /* Scroll jika teks panjang */
+            font-size: 13px;              /* Font diperkecil */
+            padding: 5px 10px !important; /* Padding rapat */
+            line-height: 1.2;
+        }
+        .option-box .ql-toolbar { padding: 0 !important; border-bottom: none !important; } /* Toolbar sangat tipis */
+        .option-box .ql-toolbar button { height: 24px; width: 24px; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="view-login" class="login-container">
+        <div class="login-card text-center">
+            <div class="mb-4">
+                <span class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 24px;">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </span>
+            </div>
+            <h4 class="fw-bold mb-1">Admin & Guru</h4>
+            <p class="text-muted mb-4 small">Masuk untuk mengelola ujian</p>
+            <form id="formLogin">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="username" placeholder="Username" required>
+                    <label>Username</label>
+                </div>
+                <div class="input-group mb-4">
+                    <div class="form-floating flex-grow-1">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <label>Password</label>
+                    </div>
+                    <span class="input-group-text bg-white border-start-0" onclick="togglePass('password', this)" style="cursor:pointer">
+                        <i class="fas fa-eye text-muted"></i>
+                    </span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold">MASUK</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="view-dashboard" class="hidden">
+        <div class="sidebar d-flex flex-column p-3">
+            <div class="d-flex align-items-center mb-4 px-2 mt-2">
+                <i class="fas fa-layer-group fa-lg me-2 text-warning"></i>
+                <h5 class="fw-bold m-0">CBT PRO</h5>
+            </div>
+            <ul class="nav flex-column mb-auto">
+                <li class="nav-item"><a onclick="switchMenu('menu-ujian')" class="nav-link active"><i class="fas fa-book me-2"></i> Bank Soal</a></li>
+                <li class="nav-item" id="nav-users"><a onclick="switchMenu('menu-users')" class="nav-link"><i class="fas fa-users me-2"></i> Data Siswa</a></li>
+                <li class="nav-item" id="nav-nilai"><a onclick="loadNilai()" class="nav-link"><i class="fas fa-poll me-2"></i> Hasil Nilai</a></li>
+            </ul>
+            <div class="mt-auto">
+                <div class="p-3 bg-white bg-opacity-10 rounded mb-2">
+                    <small class="d-block text-white-50">Login sebagai:</small>
+                    <strong class="d-block" id="adminName">User</strong>
+                </div>
+                <button onclick="logout()" class="btn btn-danger w-100"><i class="fas fa-sign-out-alt me-2"></i> Keluar</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="menu-ujian" class="content-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div><h3 class="fw-bold m-0">Manajemen Ujian</h3></div>
+                    <button onclick="tambahMapel()" class="btn btn-primary fw-bold" id="btnAddMapel"><i class="fas fa-plus me-2"></i> Buat Baru</button>
+                </div>
+                
+                <div class="row g-4 mb-5" id="gridMapel"></div>
+                
+                <div class="card card-dash p-4">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <h5 class="fw-bold m-0"><i class="fas fa-edit me-2"></i>Input Soal</h5>
+                        <a href="https://tinypng.com/" target="_blank" class="text-decoration-none small text-muted">
+                            <i class="fas fa-compress-arrows-alt me-1"></i>Link Kompres Gambar
+                        </a>
+                    </div>
+                    <div id="formSoalContainer"></div>
+                </div>
+            </div>
+
+            <div id="menu-users" class="content-section hidden">
+                <h3 class="fw-bold mb-4">Database Siswa</h3>
+                <div class="card card-dash p-4">
+                    <div class="row align-items-end">
+                        <div class="col-md-9">
+                            <label class="form-label fw-bold">Import User (Excel)</label>
+                            <input type="file" id="fileExcel" class="form-control" accept=".xlsx">
+                        </div>
+                        <div class="col-md-3">
+                            <button onclick="handleImport()" class="btn btn-success w-100 fw-bold">UPLOAD</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <button onclick="downloadTemplate()" class="btn btn-outline-primary btn-sm">Template Excel</button>
+                </div>
+            </div>
+
+            <div id="menu-nilai" class="content-section hidden">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3 class="fw-bold">Rekap Nilai</h3>
+                    <div>
+                        <button onclick="hapusNilaiTerpilih()" class="btn btn-danger me-2">Reset Terpilih</button>
+                        <button onclick="exportNilai()" class="btn btn-success">Export Excel</button>
+                    </div>
+                </div>
+                <input type="text" id="searchInput" class="form-control mb-3" placeholder="Cari Nama/Kelas..." onkeyup="filterNilai()">
+                <div class="card card-dash p-0 overflow-hidden">
+                    <table class="table table-hover mb-0" id="tableNilai">
+                        <thead class="bg-light"><tr><th width="5%"><input type="checkbox" onchange="toggleAllCheck(this)"></th><th>Waktu</th><th>Nama</th><th>Kelas</th><th>Mapel</th><th>Skor</th></tr></thead>
+                        <tbody id="tbodyNilai"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <template id="tplSoal">
+        <form onsubmit="simpanSoal(event)">
+            <div class="row mb-3">
+                <div class="col-md-8"><select id="pelajaran_id" class="form-select fw-bold border-primary" required></select></div>
+                <div class="col-md-4"><select id="kunci" class="form-select bg-warning-subtle fw-bold" required><option value="" disabled selected>Pilih Kunci Jawaban...</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+            </div>
+
+            <div class="card bg-success-subtle border-success mb-4" id="areaImportExcel" style="display:none;"> <div class="card-body p-3">
+                    <h6 class="fw-bold text-success"><i class="fas fa-file-excel me-2"></i>Import Soal dari Excel</h6>
+                    <p class="small text-muted mb-2">Pilih mapel di atas dulu, lalu upload file Excel.</p>
+                    <div class="d-flex gap-2">
+                        <button type="button" onclick="downloadTemplateSoal()" class="btn btn-sm btn-outline-success bg-white"><i class="fas fa-download me-1"></i> Template</button>
+                        <button type="button" onclick="document.getElementById('fileSoalExcel').click()" class="btn btn-sm btn-success text-white"><i class="fas fa-upload me-1"></i> Upload Excel</button>
+                    </div>
+                    <input type="file" id="fileSoalExcel" accept=".xlsx, .xls" style="display: none;" onchange="handleImportSoal(this)">
+                </div>
+            </div>
+
+            <label class="fw-bold small text-muted">PERTANYAAN</label>
+            <div class="mb-4">
+                <div id="editor-q" class="editor-container"></div>
+                <button type="button" class="btn btn-sm btn-light border mt-1" onclick="uploadImg('q')"><i class="fas fa-image text-primary"></i> Sisipkan Gambar</button>
+            </div>
+
+            <label class="fw-bold small text-muted mb-1">PILIHAN JAWABAN</label>
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <div class="input-group input-group-sm mb-1"><span class="input-group-text fw-bold px-2 py-0">A</span><button type="button" class="btn btn-light border py-0" onclick="uploadImg('a')"><i class="fas fa-image fa-xs"></i></button></div>
+                    <div id="editor-a" class="editor-container option-box border rounded-bottom"></div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="input-group input-group-sm mb-1"><span class="input-group-text fw-bold px-2 py-0">B</span><button type="button" class="btn btn-light border py-0" onclick="uploadImg('b')"><i class="fas fa-image fa-xs"></i></button></div>
+                    <div id="editor-b" class="editor-container option-box border rounded-bottom"></div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="input-group input-group-sm mb-1"><span class="input-group-text fw-bold px-2 py-0">C</span><button type="button" class="btn btn-light border py-0" onclick="uploadImg('c')"><i class="fas fa-image fa-xs"></i></button></div>
+                    <div id="editor-c" class="editor-container option-box border rounded-bottom"></div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="input-group input-group-sm mb-1"><span class="input-group-text fw-bold px-2 py-0">D</span><button type="button" class="btn btn-light border py-0" onclick="uploadImg('d')"><i class="fas fa-image fa-xs"></i></button></div>
+                    <div id="editor-d" class="editor-container option-box border rounded-bottom"></div>
+                </div>
+            </div>
+
+            <hr class="my-5">
+            <button class="btn btn-success w-100 py-3 fw-bold shadow-lg" style="font-size: 1.1rem;">
+                <i class="fas fa-save me-2"></i> SIMPAN SOAL
+            </button>
+            
+            <div style="height: 200px;"></div>
+        </form>
+        <input type="file" id="hiddenFile" style="display:none" onchange="processFile(this)">
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <script>
+        // --- KONFIGURASI SUPABASE ---
+        const SUPABASE_URL = 'https://mbkuwbcjniidcyinqwoe.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia3V3YmNqbmlpZGN5aW5xd29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMzYxOTYsImV4cCI6MjA4NjgxMjE5Nn0.56imEwwShJx8BXPM-MR4-OiHz-q-rQYrlXh0TcohX9Y';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let currentUser = null;
+        let activeUpload = null;
+        let quillEditors = {}; 
+
+        // LOGIN SYSTEM
+        document.getElementById('formLogin').addEventListener('submit', async(e)=>{
+            e.preventDefault();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            try {
+                const { data, error } = await db.from('users').select('*').eq('username', u).eq('password', p).single();
+                if(error || !data) throw new Error('User tidak ditemukan');
+                
+                if(['admin','guru'].includes(data.role)) {
+                    localStorage.setItem('admin_session', JSON.stringify(data));
+                    location.reload();
+                } else {
+                    Swal.fire('Akses Ditolak', 'Hanya untuk Admin/Guru', 'warning');
+                }
+            } catch(err) {
+                Swal.fire('Gagal', 'Username atau Password salah', 'error');
+            }
+        });
+
+        // INIT & CHECK SESSION
+        window.onload = () => {
+            const sess = localStorage.getItem('admin_session');
+            if(sess) {
+                currentUser = JSON.parse(sess);
+                // Switch View
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('adminName').innerText = currentUser.nama;
+                
+                // Load Tools
+                const tpl = document.getElementById('tplSoal').content.cloneNode(true);
+                document.getElementById('formSoalContainer').appendChild(tpl);
+                initQuillEditors(); 
+
+                // Guru Restriction & Admin Feature
+                if (currentUser.role === 'guru') {
+                    ['nav-users', 'nav-nilai', 'btnAddMapel'].forEach(id => {
+                        const el = document.getElementById(id); if(el) el.style.display='none';
+                    });
+                } else if (currentUser.role === 'admin') {
+                    // Tampilkan area Import Excel hanya untuk Admin
+                    document.getElementById('areaImportExcel').style.display = 'block';
+                }
+                refreshMapel();
+            }
+        };
+
+        function logout() { localStorage.removeItem('admin_session'); location.reload(); }
+        function togglePass(id, el) { 
+            const i = document.getElementById(id); 
+            if(i.type==='password'){ i.type='text'; el.innerHTML='<i class="fas fa-eye-slash text-primary"></i>'; } 
+            else { i.type='password'; el.innerHTML='<i class="fas fa-eye text-muted"></i>'; } 
+        }
+        function switchMenu(id) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // --- EDITOR CONFIGURATION ---
+        function initQuillEditors() {
+            const toolbarFull = [['bold', 'italic', 'underline'], [{'script':'sub'}, {'script':'super'}], ['formula']];
+            const toolbarMini = [['bold', 'italic'], ['formula']];
+
+            quillEditors['q'] = new Quill('#editor-q', { modules: { toolbar: toolbarFull }, theme: 'snow', placeholder: 'Tulis pertanyaan...' });
+            
+            ['a', 'b', 'c', 'd'].forEach(id => {
+                quillEditors[id] = new Quill('#editor-' + id, { modules: { toolbar: toolbarMini }, theme: 'snow', placeholder: '...' });
+            });
+        }
+
+        // --- MAPEL FUNCTIONS ---
+        async function refreshMapel() {
+            const { data } = await db.from('exams').select('*, questions(count)').order('created_at', {ascending:false});
+            const grid = document.getElementById('gridMapel');
+            const sel = document.getElementById('pelajaran_id');
+            grid.innerHTML = '';
+            if(sel) sel.innerHTML = '<option value="" disabled selected>Pilih Mapel...</option>';
+
+            data?.forEach(m => {
+                if(sel) sel.innerHTML += `<option value="${m.id}">${m.nama}</option>`;
+                grid.innerHTML += `
+                <div class="col-md-6 col-xl-4">
+                    <div class="card card-dash p-3 h-100">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge ${m.status==='Aktif'?'bg-success':'bg-secondary'}">${m.status}</span>
+                            ${currentUser.role==='admin' ? `<button onclick="delMapel('${m.id}')" class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
+                        <h5 class="fw-bold">${m.nama}</h5>
+                        <small class="text-muted"><i class="far fa-clock"></i> ${m.durasi}m | Token: ${m.token} | <b>${m.questions[0]?.count || 0} Soal</b></small>
+                        ${currentUser.role==='admin' ? `<button onclick="toggleStatus('${m.id}','${m.status}')" class="btn btn-outline-primary btn-sm w-100 mt-2">Ubah Status</button>` : ''}
+                    </div>
+                </div>`;
+            });
+        }
+
+        async function tambahMapel() {
+            if (currentUser.role !== 'admin') return;
+            const token = Math.random().toString(36).substring(2,7).toUpperCase();
+            const { value: v } = await Swal.fire({
+                title: 'Ujian Baru',
+                html: '<input id="sw-nama" class="swal2-input" placeholder="Nama Mapel"><input id="sw-durasi" type="number" class="swal2-input" placeholder="Durasi (Menit)">' +
+                      `<div class="mt-2 text-primary fw-bold">Token: ${token}</div>` +
+                      '<div class="mt-2 text-start px-5"><input type="checkbox" id="sw-acak-s"> Acak Soal <br> <input type="checkbox" id="sw-acak-o"> Acak Jawaban</div>',
+                preConfirm: () => [document.getElementById('sw-nama').value, document.getElementById('sw-durasi').value, document.getElementById('sw-acak-s').checked, document.getElementById('sw-acak-o').checked]
+            });
+            if(v && v[0]) { await db.from('exams').insert({ nama:v[0], durasi:v[1]||60, token:token, acak_soal:v[2], acak_opsi:v[3] }); refreshMapel(); }
+        }
+
+        async function toggleStatus(id, s) { await db.from('exams').update({status: s==='Aktif'?'Nonaktif':'Aktif'}).eq('id',id); refreshMapel(); }
+        async function delMapel(id) { if(confirm('Hapus mapel dan semua soalnya?')) { await db.from('exams').delete().eq('id',id); refreshMapel(); } }
+
+        // --- IMPORT SOAL EXCEL (FITUR BARU) ---
+        function downloadTemplateSoal() {
+            const data = [{"Pertanyaan": "1+1=?", "Opsi_A": "2", "Opsi_B": "3", "Opsi_C": "4", "Opsi_D": "5", "Kunci": "A"}];
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Template Soal");
+            XLSX.writeFile(wb, "Template_Soal_CBT.xlsx");
+        }
+
+        async function handleImportSoal(input) {
+            const file = input.files[0];
+            const examId = document.getElementById('pelajaran_id').value;
+            if (!examId) { Swal.fire('Pilih Mapel!', 'Silakan pilih Mapel di dropdown atas sebelum upload.', 'warning'); input.value = ''; return; }
+            if (!file) return;
+
+            Swal.showLoading();
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    const payload = jsonData.map(row => ({
+                        exam_id: examId,
+                        pertanyaan: row['Pertanyaan'] || row['pertanyaan'] || '',
+                        opsi_a: row['Opsi_A'] || row['A'] || '', opsi_b: row['Opsi_B'] || row['B'] || '',
+                        opsi_c: row['Opsi_C'] || row['C'] || '', opsi_d: row['Opsi_D'] || row['D'] || '',
+                        kunci: (row['Kunci'] || row['Jawaban'] || '').toUpperCase().trim()
+                    })).filter(q => q.pertanyaan && q.kunci);
+
+                    if (payload.length === 0) throw new Error("Data kosong / format salah");
+                    
+                    const { error } = await db.from('questions').insert(payload);
+                    if (error) throw error;
+                    
+                    Swal.fire('Sukses', `${payload.length} soal berhasil diimport!`, 'success');
+                    refreshMapel();
+                } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
+                input.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- UPLOAD GAMBAR KE EDITOR ---
+        function uploadImg(id) { activeUpload = id; document.getElementById('hiddenFile').click(); }
+        async function processFile(inp) {
+            if(inp.files[0]) {
+                const f = inp.files[0];
+                if(f.size > 2 * 1024 * 1024) return Swal.fire('Size Limit', 'File max 2MB', 'warning');
+                const name = `img_${Date.now()}_${Math.random()}`;
+                Swal.showLoading();
+                const { error } = await db.storage.from('images').upload(name, f);
+                if(!error) {
+                    const { data } = db.storage.from('images').getPublicUrl(name);
+                    const editor = quillEditors[activeUpload];
+                    const range = editor.getSelection(true) || { index: editor.getLength() };
+                    editor.clipboard.dangerouslyPasteHTML(range.index, `<img src="${data.publicUrl}" style="max-width:100%; border-radius:5px;">`);
+                    Swal.close();
+                } else { Swal.fire('Gagal', error.message, 'error'); }
+            }
+            inp.value = '';
+        }
+
+        // --- SIMPAN SOAL MANUAL ---
+        async function simpanSoal(e) {
+            e.preventDefault();
+            const p = { 
+                exam_id: document.getElementById('pelajaran_id').value, 
+                pertanyaan: quillEditors['q'].root.innerHTML, 
+                opsi_a: quillEditors['a'].root.innerHTML, opsi_b: quillEditors['b'].root.innerHTML,
+                opsi_c: quillEditors['c'].root.innerHTML, opsi_d: quillEditors['d'].root.innerHTML,
+                kunci: document.getElementById('kunci').value 
+            };
+            const { error } = await db.from('questions').insert(p);
+            if(!error) { 
+                Swal.fire({icon:'success', title:'Tersimpan!', timer:1000, showConfirmButton:false}); 
+                ['q','a','b','c','d'].forEach(id => quillEditors[id].setText('')); 
+                document.getElementById('kunci').value = ''; refreshMapel(); 
+            } else { Swal.fire('Error', error.message, 'error'); }
+        }
+
+        // --- DATA NILAI ---
+        async function loadNilai() {
+            switchMenu('menu-nilai');
+            const { data } = await db.from('results').select('*').order('submitted_at', {ascending:false});
+            const tb = document.getElementById('tbodyNilai'); tb.innerHTML = '';
+            data.forEach(d => {
+                tb.innerHTML += `<tr><td><input type="checkbox" class="chk-nilai" value="${d.id}"></td><td><small>${new Date(d.submitted_at).toLocaleString()}</small></td><td class="fw-bold">${d.nama_siswa}</td><td>${d.kelas_siswa || '-'}</td><td>${d.mapel_nama}</td><td><span class="badge bg-primary">${d.skor}</span></td></tr>`;
+            });
+        }
+        function filterNilai() {
+            const val = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#tbodyNilai tr').forEach(r => { r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none'; });
+        }
+        function toggleAllCheck(el) { document.querySelectorAll('.chk-nilai').forEach(c => c.checked = el.checked); }
+        async function hapusNilaiTerpilih() {
+            const ids = Array.from(document.querySelectorAll('.chk-nilai:checked')).map(c => c.value);
+            if(ids.length > 0 && confirm(`Hapus ${ids.length} data?`)) { for(let id of ids) await db.from('results').delete().eq('id', id); loadNilai(); }
+        }
+        
+        function downloadTemplate() { 
+            const ws = XLSX.utils.aoa_to_sheet([["username","password","role","nama","kelas"],["siswa1","123","siswa","Budi","12A"]]); 
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Sheet1"); 
+            XLSX.writeFile(wb, "Template_Siswa.xlsx"); 
+        }
+        async function handleImport() {
+            const f = document.getElementById('fileExcel').files[0]; if(!f) return;
+            const r = new FileReader(); r.onload = async(e) => {
+                const d = XLSX.utils.sheet_to_json(XLSX.read(e.target.result, {type:'array'}).Sheets['Sheet1']);
+                let c=0; for(let u of d) { const {error} = await db.from('users').insert({username:u.username, password:u.password, role:u.role, nama:u.nama, kelas:u.kelas}); if(!error) c++; }
+                Swal.fire('Import Selesai', `${c} siswa berhasil ditambahkan`, 'success');
+            }; r.readAsArrayBuffer(f);
+        }
+        function exportNilai() { XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('tableNilai')), 'Rekap_Nilai.xlsx'); }
+    </script>
+</body>
+</html>

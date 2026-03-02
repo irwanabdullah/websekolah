@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Nilai Proyek P5 | e-Rapor Online</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; vertical-align: middle; }
+        th { background-color: #f8d7da; font-size: 0.9em; color: #721c24; }
+        select.capaian-select { padding: 5px; width: 100%; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; }
+        textarea { width: 100%; height: 50px; padding: 5px; box-sizing: border-box; resize: vertical; }
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .btn-submit { background-color: #dc3545; color: white; padding: 15px; font-size: 1.1em; width: 100%; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .btn-submit:hover { background-color: #c82333; }
+        
+        /* Desain untuk warna Capaian */
+        .val-BB { background-color: #ffcccc; }
+        .val-MB { background-color: #fff4cc; }
+        .val-BSH { background-color: #d4edda; }
+        .val-SB { background-color: #cce5ff; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 1200px;">
+        <div class="header" style="background-color: #dc3545;">
+            <h2>🌟 Input Nilai Proyek P5</h2>
+            <a href="dashboard.html"><button style="color: #dc3545;">Kembali ke Dashboard</button></a>
+        </div>
+
+        <div class="card" style="text-align: left; background: #fff; border: 1px solid #ddd;">
+            <div class="filter-grid">
+                <div>
+                    <label><strong>1. Pilih Proyek P5:</strong></label>
+                    <select id="proyek" style="width: 100%; padding: 10px; margin-top: 5px;">
+                        <option value="">-- Memuat Proyek... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label><strong>2. Pilih Kelas:</strong></label>
+                    <select id="kelas" style="width: 100%; padding: 10px; margin-top: 5px;">
+                        <option value="">-- Memuat Kelas... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label><strong>3. Pilih Dimensi Profil:</strong></label>
+                    <select id="dimensi" style="width: 100%; padding: 10px; margin-top: 5px; font-weight: bold;">
+                        <option value="">-- Pilih Dimensi --</option>
+                        <option value="Beriman, Bertakwa & Berakhlak Mulia">Beriman, Bertakwa & Berakhlak Mulia</option>
+                        <option value="Berkebinekaan Global">Berkebinekaan Global</option>
+                        <option value="Bergotong Royong">Bergotong Royong</option>
+                        <option value="Mandiri">Mandiri</option>
+                        <option value="Bernalar Kritis">Bernalar Kritis</option>
+                        <option value="Kreatif">Kreatif</option>
+                    </select>
+                </div>
+            </div>
+            <p style="font-size: 0.85em; color: gray; margin-top: 10px;"><em>*Catatan: Pastikan Admin sudah membuat data Proyek P5 di database agar muncul di dropdown.</em></p>
+        </div>
+        
+        <p id="pesan-sistem" style="text-align: center; font-weight: bold; margin-top: 10px;"></p>
+
+        <div class="table-container">
+            <form id="form-nilai-p5">
+                <table id="tabel-utama" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th width="25%">Nama Siswa (NISN)</th>
+                            <th width="25%">Capaian Dimensi<br><small>(BB / MB / BSH / SB)</small></th>
+                            <th width="50%">Catatan Proses / Deskripsi (Opsional)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-siswa"></tbody>
+                </table>
+                <button type="submit" id="btn-submit" class="btn-submit" style="display: none;">💾 Simpan Nilai P5 Kelas Ini</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, checkSession } from './app.js'
+
+        let guruId = null;
+        let dataAnggotaKelas = []; 
+
+        async function initP5() {
+            const session = await checkSession()
+            if (!session) return window.location.href = 'index.html'
+            guruId = session.user.id;
+
+            // Load Data Dropdown
+            const selectProyek = document.getElementById('proyek')
+            const selectKelas = document.getElementById('kelas')
+
+            const { data: proyekData } = await supabase.from('proyek_p5').select('id, nama_proyek, tema')
+            const { data: kelasData } = await supabase.from('kelas').select('id, nama_kelas')
+
+            if (proyekData && proyekData.length > 0) {
+                selectProyek.innerHTML = '<option value="">-- Pilih Proyek --</option>'
+                proyekData.forEach(p => selectProyek.innerHTML += `<option value="${p.id}">${p.nama_proyek} (${p.tema})</option>`)
+            } else {
+                selectProyek.innerHTML = '<option value="">-- Belum ada data Proyek --</option>'
+            }
+
+            if (kelasData) {
+                selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>'
+                kelasData.forEach(k => selectKelas.innerHTML += `<option value="${k.id}">${k.nama_kelas}</option>`)
+            }
+
+            // Event Listeners (Tabel akan dimuat ulang jika salah satu dari 3 dropdown ini diubah)
+            document.getElementById('proyek').addEventListener('change', loadSiswaP5)
+            document.getElementById('kelas').addEventListener('change', loadSiswaP5)
+            document.getElementById('dimensi').addEventListener('change', loadSiswaP5)
+        }
+
+        async function loadSiswaP5() {
+            const proyekId = document.getElementById('proyek').value
+            const kelasId = document.getElementById('kelas').value
+            const dimensi = document.getElementById('dimensi').value
+            
+            const tbody = document.getElementById('tabel-siswa')
+            const tabelUtama = document.getElementById('tabel-utama')
+            const btnSubmit = document.getElementById('btn-submit')
+
+            // Pastikan ke-3 dropdown sudah dipilih
+            if (!kelasId || !proyekId || !dimensi) {
+                tabelUtama.style.display = 'none'; btnSubmit.style.display = 'none'; return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="3">Memuat data siswa dan nilai P5 lama...</td></tr>'
+            tabelUtama.style.display = 'table'; 
+
+            // Load daftar siswa di kelas tersebut (Relasi anggota_kelas -> siswa)
+            const { data: anggota, error } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn)`).eq('kelas_id', kelasId)
+
+            if (error || !anggota || anggota.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="color:red;">Tidak ada siswa di kelas ini.</td></tr>`
+                return
+            }
+
+            // Load nilai P5 yang sudah pernah disimpan (berdasarkan proyek dan dimensi terpilih)
+            let mapNilaiLama = {};
+            const listAnggotaId = anggota.map(a => a.id);
+            const { data: nilaiExisting } = await supabase.from('nilai_p5')
+                .select('*')
+                .in('anggota_kelas_id', listAnggotaId)
+                .eq('proyek_id', proyekId)
+                .eq('dimensi', dimensi);
+
+            if (nilaiExisting) {
+                nilaiExisting.forEach(n => { mapNilaiLama[n.anggota_kelas_id] = n; });
+            }
+
+            dataAnggotaKelas = anggota;
+            tbody.innerHTML = '';
+
+            // Render baris tabel
+            anggota.forEach(a => {
+                const n = mapNilaiLama[a.id] || {};
+                const capaianValue = n.capaian || '';
+                
+                const tr = document.createElement('tr')
+                tr.innerHTML = `
+                    <td style="text-align: left;"><strong>${a.siswa.nama_lengkap}</strong><br><small style="color:gray;">NISN: ${a.siswa.nisn}</small></td>
+                    <td>
+                        <select id="capaian_${a.id}" class="capaian-select val-${capaianValue}">
+                            <option value="">- Pilih Capaian -</option>
+                            <option value="BB" ${capaianValue === 'BB' ? 'selected' : ''}>BB (Belum Berkembang)</option>
+                            <option value="MB" ${capaianValue === 'MB' ? 'selected' : ''}>MB (Mulai Berkembang)</option>
+                            <option value="BSH" ${capaianValue === 'BSH' ? 'selected' : ''}>BSH (Berkembang Sesuai Harapan)</option>
+                            <option value="SB" ${capaianValue === 'SB' ? 'selected' : ''}>SB (Sangat Berkembang)</option>
+                        </select>
+                    </td>
+                    <td><textarea id="catatan_${a.id}" placeholder="Tuliskan catatan observasi...">${n.catatan || ''}</textarea></td>
+                `
+                tbody.appendChild(tr)
+                
+                // Tambahkan efek warna saat dropdown diubah
+                const sel = tr.querySelector(`#capaian_${a.id}`);
+                sel.addEventListener('change', function() {
+                    this.className = `capaian-select val-${this.value}`;
+                });
+            });
+
+            btnSubmit.style.display = 'block';
+        }
+
+        // --- SIMPAN KE DATABASE (TABEL nilai_p5) ---
+        document.getElementById('form-nilai-p5').addEventListener('submit', async (e) => {
+            e.preventDefault()
+            const btnSubmit = document.getElementById('btn-submit')
+            const proyekId = document.getElementById('proyek').value
+            const dimensi = document.getElementById('dimensi').value
+            const pesan = document.getElementById('pesan-sistem')
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = '⏳ Menyimpan data P5...';
+
+            try {
+                // Gunakan Promise.all untuk menyimpan massal (1 kelas sekaligus)
+                const promises = dataAnggotaKelas.map(async (anggota) => {
+                    const capaian = document.getElementById(`capaian_${anggota.id}`).value;
+                    const catatan = document.getElementById(`catatan_${anggota.id}`).value;
+
+                    if(!capaian) return; // Jangan simpan jika capaian tidak dipilih
+
+                    // Cek apakah data sudah ada (Update/Insert)
+                    const { data: cekNilai } = await supabase.from('nilai_p5')
+                        .select('id')
+                        .eq('anggota_kelas_id', anggota.id)
+                        .eq('proyek_id', proyekId)
+                        .eq('dimensi', dimensi).single();
+
+                    if(cekNilai) {
+                        await supabase.from('nilai_p5').update({
+                            capaian: capaian, catatan: catatan
+                        }).eq('id', cekNilai.id);
+                    } else {
+                        await supabase.from('nilai_p5').insert([{
+                            anggota_kelas_id: anggota.id, 
+                            proyek_id: proyekId,
+                            dimensi: dimensi,
+                            capaian: capaian, 
+                            catatan: catatan
+                        }]);
+                    }
+                });
+
+                await Promise.all(promises);
+                pesan.style.color = 'green';
+                pesan.textContent = '✅ Berhasil menyimpan Nilai P5 untuk dimensi ' + dimensi + '!';
+            } catch (error) {
+                pesan.style.color = 'red';
+                pesan.textContent = '⚠️ Error: ' + error.message;
+            }
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '💾 Simpan Nilai P5 Kelas Ini';
+            setTimeout(() => pesan.textContent = '', 5000);
+        });
+
+        initP5()
+    </script>
+</body>
+</html>

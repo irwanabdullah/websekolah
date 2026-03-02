@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | e-Rapor Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2>Dashboard e-Rapor</h2>
+                <p>Selamat datang, <span id="user-name">Memuat...</span></p>
+            </div>
+            <button id="btn-logout" class="danger">Logout</button>
+        </div>
+
+        <p>Akses Anda: <strong id="user-roles">...</strong></p>
+
+        <div class="menu-grid">
+            <a href="admin.html" id="menu-admin" class="card hidden" style="background: #f8d7da;">
+                ⚙️ Panel Administrator
+            </a>
+            
+            <a href="guru.html" id="menu-guru" class="card hidden" style="background: #d1ecf1;">
+                📝 Input Nilai Mata Pelajaran
+            </a>
+
+            <a href="walikelas.html" id="menu-wali" class="card hidden" style="background: #d4edda;">
+                🖨️ Cetak Rapor & Absensi
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, checkSession, logout } from './app.js'
+
+        document.getElementById('btn-logout').addEventListener('click', logout)
+
+        async function initDashboard() {
+            const session = await checkSession()
+            if (!session) {
+                window.location.href = 'index.html' // Usir jika belum login
+                return
+            }
+
+            // Ambil data profil dan role dari database
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('full_name, roles')
+                .eq('id', session.user.id)
+                .single()
+
+            if (profile) {
+                document.getElementById('user-name').textContent = profile.full_name
+                document.getElementById('user-roles').textContent = profile.roles.join(', ').toUpperCase()
+
+                // Tampilkan menu berdasarkan role
+                if (profile.roles.includes('admin')) {
+                    document.getElementById('menu-admin').classList.remove('hidden')
+                }
+                if (profile.roles.includes('guru')) {
+                    document.getElementById('menu-guru').classList.remove('hidden')
+                }
+                if (profile.roles.includes('wali_kelas')) {
+                    document.getElementById('menu-wali').classList.remove('hidden')
+                }
+            }
+        }
+
+        initDashboard()
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun Guru | e-Rapor Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 400px; margin-top: 50px;">
+        <h2 style="text-align: center;">Pendaftaran Akun Guru</h2>
+        <p style="text-align: center; font-size: 0.9em; color: #666;">Silakan daftar, lalu hubungi Admin untuk aktivasi role Anda.</p>
+        
+        <p id="msg-register" style="text-align: center; font-weight: bold;"></p>
+        
+        <form id="register-form">
+            <label>Nama Lengkap (Sesuai Gelar)</label>
+            <input type="text" id="fullname" required placeholder="Contoh: Budi Santoso, S.Pd">
+            
+            <label>Email Anda</label>
+            <input type="email" id="email" required placeholder="email@sekolah.com">
+            
+            <label>Password (Minimal 6 karakter)</label>
+            <input type="password" id="password" required>
+            
+            <button type="submit" style="width: 100%; margin-top: 15px; background-color: #28a745;">Daftar Sekarang</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="index.html">Sudah punya akun? Kembali ke Login</a>
+        </p>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js'
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault()
+            const btn = e.target.querySelector('button')
+            const msg = document.getElementById('msg-register')
+            
+            const full_name = document.getElementById('fullname').value
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+
+            btn.textContent = 'Memproses...'
+            
+            // Proses pendaftaran ke Supabase Auth
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { full_name: full_name } // Menyimpan nama ke metadata
+                }
+            })
+
+            if (error) {
+                msg.textContent = "Gagal: " + error.message
+                msg.style.color = "red"
+                btn.textContent = 'Daftar Sekarang'
+            } else {
+                msg.textContent = "Berhasil! Silakan lapor ke Admin untuk persetujuan."
+                msg.style.color = "green"
+                e.target.reset()
+                btn.style.display = 'none' // Sembunyikan tombol agar tidak di-klik 2x
+            }
+        })
+    </script>
+</body>
+</html>

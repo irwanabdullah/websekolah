@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak Rapor Akademik</title>
+    <style>
+        @page { size: A4; margin: 10mm 20mm 20mm 20mm; } 
+        body { font-family: Tahoma, Verdana, sans-serif; font-size: 10pt; color: #000; background: #fff; line-height: 1.4; margin: 0; }
+         /*body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; color: #000; background: #fff; line-height: 1.4; margin: 0; }
+         body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #000; background: #fff; line-height: 1.4; margin: 0; }*/
+                .header { text-align: center; font-weight: bold; margin-bottom: 15px; }
+        .header h2 { margin: 0; font-size: 14pt; }
+        .kop-wrapper { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .identitas { width: 100%; border-collapse: collapse; }
+        .identitas td { padding: 2px 5px; vertical-align: top; }
+        table.tabel-utama { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table.tabel-utama th, table.tabel-utama td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
+        table.tabel-utama th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
+        .text-center { text-align: center; }
+        .box-catatan { border: 1px solid #000; padding: 10px; min-height: 60px; margin-bottom: 20px; }
+        .box-keputusan { border: 2px solid #000; padding: 15px; margin-bottom: 20px; text-align: center; }
+        .box-keputusan p { margin: 10px 0 0 0; font-size: 14pt; font-weight: bold; }
+        .tabel-absen { width: 50%; border-collapse: collapse; margin-bottom: 20px; }
+        .tabel-absen td { border: 1px solid #000; padding: 4px 8px; }
+        .ttd-box { width: 100%; margin-top: 20px; text-align: center; page-break-inside: avoid; }
+        .ttd-box td { width: 33%; vertical-align: top; padding-top: 10px; }
+        .ttd-space { height: 70px; }
+        .footer-print { position: fixed; bottom: 0; left: 0; width: 100%; border-top: 1px solid #000; padding-top: 5px; font-size: 10pt; display: flex; justify-content: space-between; background: #fff; }
+        @media screen { .no-print { display: block; } .footer-print { display: none; } }
+        @media print { .no-print { display: none; } .footer-print { display: flex; } }
+    </style>
+</head>
+<body>
+    <button class="no-print" onclick="window.print()" style="padding: 10px 20px; font-size: 14px; margin-bottom: 20px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer;">🖨️ Cetak Rapor Akademik</button>
+
+    <table style="width: 100%; border: none;">
+        <thead>
+            <tr>
+                <td>
+                    <div class="header"><h2>LAPORAN HASIL BELAJAR</h2></div>
+                    <div class="kop-wrapper">
+                        <table class="identitas">
+                            <tr>
+                                <td width="15%">Nama</td><td width="2%">:</td><td width="43%" id="nama_siswa">...</td>
+                                <td width="15%">Kelas</td><td width="2%">:</td><td width="23%" id="kelas">...</td>
+                            </tr>
+                            <tr>
+                                <td>NIS/NISN</td><td>:</td><td id="nisn">...</td>
+                                <td>Fase</td><td>:</td><td>D</td>
+                            </tr>
+                            <tr>
+                                <td>Nama Sekolah</td><td>:</td><td><b>UPT SPF SMP NEGERI 13 MAKASSAR</b></td>
+                                <td>Semester</td><td>:</td><td id="semester-text">Memuat...</td>
+                            </tr>
+                            <tr>
+                                <td>Alamat</td><td>:</td><td>Jl. Tamalate VI No. 2 Perumnas-Makassar</td>
+                                <td>Tahun Pelajaran</td><td>:</td><td id="tapel-text">Memuat...</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+        
+        <tbody>
+            <tr>
+                <td>
+                    <table class="tabel-utama">
+                        <thead><tr><th width="5%">No</th><th width="25%">Mata Pelajaran</th><th width="10%">Nilai Akhir</th><th width="60%">Capaian Kompetensi</th></tr></thead>
+                        <tbody id="tbody-akademik"><tr><td colspan="4" class="text-center">Memuat data...</td></tr></tbody>
+                    </table>
+
+                    <table class="tabel-utama">
+                        <thead><tr><th width="5%">No</th><th width="30%">Kegiatan Ekstrakurikuler</th><th width="15%">Predikat</th><th width="50%">Keterangan</th></tr></thead>
+                        <tbody id="tbody-ekskul"></tbody>
+                    </table>
+
+                    <table class="tabel-absen">
+                        <tr><td width="60%">Sakit</td><td width="40%" class="text-center" id="sakit">- hari</td></tr>
+                        <tr><td>Izin</td><td class="text-center" id="izin">- hari</td></tr>
+                        <tr><td>Tanpa Keterangan</td><td class="text-center" id="alpa">- hari</td></tr>
+                    </table>
+                    
+                    <div class="box-catatan"><b>Catatan Wali Kelas:</b><br><div id="catatan" style="margin-top: 5px; font-style: italic;">-</div></div>
+
+                    <div class="box-keputusan" id="box-keputusan" style="display: none;">
+                        <b>Keterangan Keputusan:</b><br>Berdasarkan pencapaian seluruh kompetensi pada semester ganjil dan genap, peserta didik ditetapkan:<br>
+                        <p id="teks-keputusan">NAIK KE KELAS ...</p>
+                    </div>
+
+                    <table class="ttd-box">
+                        <tr>
+                            <td>Mengetahui,<br>Orang Tua/Wali<div class="ttd-space"></div><b>( ......................................... )</b></td>
+                            <td></td>
+                            <td>Makassar, <span id="tgl_cetak">...</span><br>Wali Kelas<div class="ttd-space"></div><b><u id="nama_walas">Memuat...</u></b><br>NIP. <span id="nip_walas">...</span></td>
+                        </tr>
+                        <tr><td></td><td style="padding-top: 30px;">Mengetahui,<br>Kepala Sekolah<div class="ttd-space"></div><b><u>Drs. Ramli., M.Pd.</u></b><br>NIP. 196611091996021002</td><td></td></tr>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer-print"><span id="footer-kiri">Kelas ... | Nama Siswa ... | NIS ...</span></div>
+
+    <script type="module">
+        import { supabase, checkSession } from './app.js'
+
+        const urutanBaku = ["Pendidikan Agama Islam", "Pendidikan Agama Kristen", "Pendidikan Agama Katolik", "Pendidikan Agama Hindu", "Pendidikan Agama Buddha", "Pendidikan Agama Konghucu", "Pendidikan Pancasila", "PPKn", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam", "IPA", "Ilmu Pengetahuan Sosial", "IPS", "Bahasa Inggris", "Pendidikan Jasmani", "PJOK", "Seni Budaya", "Prakarya", "Informatika", "Muatan Lokal", "Bahasa Daerah"];
+        function getNomorUrut(namaMapel) { let nama = namaMapel.toLowerCase(); let index = urutanBaku.findIndex(mapelBaku => nama.includes(mapelBaku.toLowerCase())); return index !== -1 ? index : 999; }
+
+        async function loadRapor() {
+            const params = new URLSearchParams(window.location.search); const id = params.get('id');
+            if(!id) return;
+
+            // 1. CEK SEMESTER AKTIF & TANGGAL CETAK DARI DATABASE
+            let isGenap = false;
+            const { data: tapelTerbaru } = await supabase.from('tahun_ajaran').select('*').order('id', { ascending: false }).limit(1).single();
+            if(tapelTerbaru) {
+                document.getElementById('tapel-text').textContent = tapelTerbaru.nama;
+                if(tapelTerbaru.semester == '2') {
+                    document.getElementById('semester-text').textContent = 'Genap';
+                    isGenap = true;
+                } else {
+                    document.getElementById('semester-text').textContent = 'Ganjil';
+                }
+                
+                // MENGGUNAKAN TANGGAL CETAK DARI ADMIN
+                if(tapelTerbaru.tanggal_cetak) {
+                    document.getElementById('tgl_cetak').textContent = tapelTerbaru.tanggal_cetak;
+                } else {
+                    document.getElementById('tgl_cetak').textContent = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            }
+
+            const {data: agt} = await supabase.from('anggota_kelas').select('siswa(nama_lengkap, nisn, status_akademik), kelas(nama_kelas)').eq('id', id).single();
+            if(agt) {
+                document.getElementById('nama_siswa').textContent = agt.siswa.nama_lengkap; document.getElementById('nisn').textContent = '- / ' + agt.siswa.nisn; document.getElementById('kelas').textContent = agt.kelas.nama_kelas; document.getElementById('footer-kiri').textContent = `Kelas ${agt.kelas.nama_kelas} | ${agt.siswa.nama_lengkap} | ${agt.siswa.nisn}`;
+                const status = agt.siswa.status_akademik;
+                if(isGenap && status && status !== 'Aktif') { document.getElementById('box-keputusan').style.display = 'block'; if(status.toLowerCase().includes('lulus')) { document.getElementById('teks-keputusan').textContent = 'LULUS DARI SATUAN PENDIDIKAN (SMP)'; } else { document.getElementById('teks-keputusan').textContent = status.toUpperCase(); } }
+            }
+
+            const {data: nilai} = await supabase.from('nilai_akademik').select('nilai_akhir, deskripsi_capaian, pengampu_mapel(mata_pelajaran(nama_mapel))').eq('anggota_kelas_id', id);
+            const tbAkademik = document.getElementById('tbody-akademik');
+            if(nilai && nilai.length > 0) { nilai.sort((a, b) => { let urutanA = getNomorUrut(a.pengampu_mapel.mata_pelajaran.nama_mapel); let urutanB = getNomorUrut(b.pengampu_mapel.mata_pelajaran.nama_mapel); return urutanA - urutanB; }); tbAkademik.innerHTML = ''; nilai.forEach((n, i) => { tbAkademik.innerHTML += `<tr><td class="text-center">${i+1}</td><td>${n.pengampu_mapel.mata_pelajaran.nama_mapel}</td><td class="text-center"><b>${n.nilai_akhir}</b></td><td style="text-align:justify;">${n.deskripsi_capaian}</td></tr>`; }); } else { tbAkademik.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada nilai akademik.</td></tr>'; }
+
+            const {data: ekskul} = await supabase.from('nilai_ekskul').select('predikat, deskripsi, ekstrakurikuler(nama_ekskul)').eq('anggota_kelas_id', id);
+            const tbEkskul = document.getElementById('tbody-ekskul');
+            if(ekskul && ekskul.length > 0) { ekskul.forEach((e, i) => { tbEkskul.innerHTML += `<tr><td class="text-center">${i+1}</td><td>${e.ekstrakurikuler.nama_ekskul}</td><td class="text-center">${e.predikat}</td><td style="text-align:justify;">${e.deskripsi}</td></tr>`; }); } else { tbEkskul.innerHTML = '<tr><td colspan="4" class="text-center">- Tidak mengikuti ekstrakurikuler -</td></tr>'; }
+
+            const {data: absen} = await supabase.from('absensi_catatan').select('*').eq('anggota_kelas_id', id).single();
+            if(absen) { document.getElementById('sakit').textContent = (absen.sakit || 0) + ' hari'; document.getElementById('izin').textContent = (absen.izin || 0) + ' hari'; document.getElementById('alpa').textContent = (absen.tanpa_keterangan || 0) + ' hari'; document.getElementById('catatan').textContent = absen.catatan_wali_kelas || '-'; }
+            
+            const session = await checkSession(); if (session) { const { data: profile } = await supabase.from('profiles').select('full_name, nip').eq('id', session.user.id).single(); if (profile) { document.getElementById('nama_walas').textContent = profile.full_name; document.getElementById('nip_walas').textContent = profile.nip ? profile.nip : '-'; } }
+            setTimeout(() => window.print(), 1000);
+        }
+        
+        loadRapor();
+    </script>
+</body>
+</html>

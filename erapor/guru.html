@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Guru & Staf | e-Rapor Online</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #059669; --primary-dark: #047857; --sidebar-bg: #064e3b; --sidebar-hover: #10b981; --bg-color: #f3f4f6; --text-main: #1f2937; --text-muted: #6b7280; --border-color: #e5e7eb; --white: #ffffff; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: var(--white); display: flex; flex-direction: column; flex-shrink: 0; box-shadow: 4px 0 10px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-header { padding: 24px; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; padding: 15px 0; margin: 0; flex: 1; overflow-y: auto; }
+        .sidebar-menu li { padding: 0 15px; margin-bottom: 8px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.8); text-decoration: none; padding: 12px 16px; border-radius: 8px; font-weight: 500; transition: all 0.2s ease; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: var(--sidebar-hover); color: var(--white); }
+        .logout-btn { margin: 20px; padding: 12px; background-color: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { background-color: #dc2626; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: var(--white); padding: 20px 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .topbar h2 { margin: 0; font-size: 1.2rem; font-weight: 600; color: var(--sidebar-bg); }
+        .user-info { font-size: 0.95rem; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 15px;}
+        .tapel-badge { background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; border: 1px solid #bae6fd; }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--white); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .card-header { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+        .card-header h3 { margin: 0; font-size: 1.1rem; color: var(--primary-dark); }
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; align-items: flex-end;}
+        label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
+        select, input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; font-family: 'Inter', sans-serif; background: #fff; transition: 0.2s; box-sizing: border-box; }
+        select:focus, input:focus, textarea:focus { border-color: var(--primary); outline: 0; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-weight: 600; font-size: 0.9rem; transition: 0.2s; font-family: 'Inter', sans-serif; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: var(--primary); color: #fff; } .btn-success { background-color: var(--success); color: #fff; } .btn-warning { background-color: var(--warning); color: #000; } .btn-danger { background-color: var(--danger); color: #fff; } .btn-dark { background-color: #374151; color: #fff; }
+        .table-responsive { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background: #fff; }
+        th, td { padding: 10px 12px; text-align: center; border: 1px solid var(--border-color); vertical-align: middle; }
+        th { background-color: #f1f5f9; font-weight: 600; color: var(--text-main); }
+        td input[type="number"] { width: 60px; text-align: center; padding: 6px; border: 1px solid transparent; background: transparent; }
+        td textarea { height: 40px; resize: vertical; border: 1px solid transparent; background: transparent; }
+        td input:focus, td textarea:focus, td select:focus { border: 1px solid var(--primary); background: #f0fdf4; }
+        td select { border: 1px solid transparent; background: transparent; padding: 6px; }
+        .csv-box { background: #f0fdf4; border: 2px dashed #a7f3d0; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">👨‍🏫 Portal Guru</div>
+        <ul class="sidebar-menu">
+            <li><a class="nav-link active" data-target="tab-home">🏠 Beranda Guru</a></li>
+            <li><a class="nav-link" data-target="tab-profil">👤 Profil & NIP Saya</a></li>
+            <li id="nav-guru" style="display: none;"><a class="nav-link" data-target="tab-akademik">📝 Nilai Akademik</a></li>
+            <li id="nav-walas" style="display: none;"><a class="nav-link" data-target="tab-walas">👨‍🏫 Wali Kelas (Leger)</a></li>
+            <li id="nav-p5" style="display: none;"><a class="nav-link" data-target="tab-p5">🌟 Proyek Kokurikuler</a></li>
+            <li id="nav-ekskul" style="display: none;"><a class="nav-link" data-target="tab-ekskul">⚽ Ekstrakurikuler</a></li>
+        </ul>
+        <div style="padding: 20px;"><button id="btn-logout" class="logout-btn" style="width: 100%;">🚪 Keluar Sistem</button></div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <h2 id="page-title">Beranda Guru</h2>
+            <div class="user-info">
+                <span id="tapel-badge" class="tapel-badge">🎓 Memuat...</span>
+                <span id="user-info-name">Memuat...</span>
+            </div>
+        </header>
+
+        <div id="banner-terkunci" style="display: none; background: #fee2e2; border-bottom: 1px solid #f87171; color: #b91c1c; padding: 12px 30px; font-weight: bold; align-items: center; justify-content: center; gap: 10px; font-size: 0.95rem;">
+            🔒 PENGISIAN NILAI TELAH DIKUNCI OLEH ADMIN! ANDA HANYA BISA MELIHAT DATA & MENCETAK DOKUMEN.
+        </div>
+
+        <div class="content-area">
+            
+            <div id="tab-home" class="page-section active">
+                <div class="card" style="text-align: center; padding: 40px;">
+                    <h2>Selamat Datang di Portal Input e-Rapor</h2>
+                    <p style="color: var(--text-muted);">Gunakan menu di samping untuk mengelola nilai sesuai tanggung jawab Anda.</p>
+                </div>
+            </div>
+
+            <div id="tab-profil" class="page-section">
+                <div class="card" style="max-width: 500px; margin: 0 auto;">
+                    <div class="card-header"><h3>👤 Pengaturan Profil Guru</h3></div>
+                    <form id="form-profil">
+                        <label>Nama Lengkap (Beserta Gelar)</label><input type="text" id="prof_nama" required style="margin-bottom: 15px;">
+                        <label>NIP (Nomor Induk Pegawai)</label><input type="text" id="prof_nip" placeholder="Kosongkan jika Non-PNS">
+                        <button type="submit" id="btn-simpan-profil" class="btn btn-dark" style="margin-top: 20px;">💾 Simpan Profil</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="tab-akademik" class="page-section">
+                <div class="card">
+                    <div class="filter-grid">
+                        <div><label>Mata Pelajaran</label><select id="ak_mapel"><option value="">- Pilih Mapel -</option></select></div>
+                        <div><label>Kelas</label><select id="ak_kelas" class="kelas-dropdown"><option value="">- Pilih Kelas -</option></select></div>
+                        <div><button class="btn btn-primary" onclick="loadSiswaAkademik()">🔍 Tampilkan Siswa</button></div>
+                    </div>
+                </div>
+                <div id="ak_csv_tools" class="csv-box" style="display: none;">
+                    <button id="btn-download-csv" class="btn btn-success" style="width: auto; padding: 10px 20px;">⬇️ Download Template CSV</button>
+                    <div style="display: flex; gap: 10px; align-items: center;"><input type="file" id="file-csv-nilai" accept=".csv" style="padding: 5px;"><button id="btn-upload-csv" class="btn btn-warning" style="width: auto;">⬆️ Upload CSV</button></div>
+                </div>
+                <form id="form-akademik">
+                    <div class="table-responsive">
+                        <table id="tabel-akademik" style="display: none;">
+                            <thead><tr><th>Nama Siswa (NISN)</th><th>Formatif</th><th>Sumatif</th><th>SAS</th><th>Nilai Akhir</th><th>Deskripsi Capaian</th></tr></thead>
+                            <tbody id="tbody-akademik"></tbody>
+                        </table>
+                    </div>
+                    <button type="submit" id="btn-simpan-ak" class="btn btn-primary" style="display: none; padding: 15px; font-size: 1rem; margin-top: 15px;">💾 Simpan Nilai Akademik</button>
+                </form>
+            </div>
+
+            <div id="tab-walas" class="page-section">
+                <div class="card">
+                    <div class="filter-grid">
+                        <div><label>Pilih Kelas Binaan Anda</label><select id="wl_kelas"><option value="">- Pilih Kelas -</option></select></div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="loadSiswaWalas()">🔍 Tampilkan Siswa</button>
+                            <button class="btn btn-success" onclick="downloadLegerKelas()">📊 Download Leger (Excel)</button>
+                            <button class="btn btn-warning" id="btn-kenaikan-kelas" onclick="prosesKenaikanKelas()" style="display: none;">🎓 Proses Kenaikan/Lulus</button>
+                        </div>
+                    </div>
+                </div>
+                <form id="form-walas">
+                    <div class="table-responsive">
+                        <table id="tabel-walas" style="display: none;">
+                            <thead><tr><th>Nama Siswa (NISN)</th><th>Sakit (Hari)</th><th>Izin (Hari)</th><th>Alpa (Hari)</th><th>Catatan Wali Kelas</th><th width="15%">Aksi (Cetak)</th></tr></thead>
+                            <tbody id="tbody-walas"></tbody>
+                        </table>
+                    </div>
+                    <button type="submit" id="btn-simpan-wl" class="btn btn-success" style="display: none; padding: 15px; font-size: 1rem; margin-top: 15px;">💾 Simpan Absensi & Catatan</button>
+                </form>
+            </div>
+
+            <div id="tab-p5" class="page-section">
+                <div class="card" style="border-top: 4px solid var(--danger);">
+                    <div class="filter-grid">
+                        <div><label>Pilih Proyek (Di Tapel Ini)</label><select id="p5_proyek"><option value="">- Pilih Proyek Kokurikuler -</option></select></div>
+                        <div><label>Kelas</label><select id="p5_kelas" class="kelas-dropdown"><option value="">- Pilih Kelas -</option></select></div>
+                        <div><label>Dimensi Profil</label>
+                            <select id="p5_dimensi"><option value="">- Pilih Dimensi -</option><option value="Beriman & Bertakwa">Beriman & Bertakwa</option><option value="Berkebinekaan Global">Berkebinekaan Global</option><option value="Bergotong Royong">Bergotong Royong</option><option value="Mandiri">Mandiri</option><option value="Bernalar Kritis">Bernalar Kritis</option><option value="Kreatif">Kreatif</option></select>
+                        </div>
+                        <div><button class="btn btn-danger" onclick="loadSiswaP5()">🔍 Tampilkan</button></div>
+                    </div>
+                    
+                    <div id="area-deskripsi-dimensi" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color);">
+                        <label>Tujuan / Target Capaian Dimensi Ini</label>
+                        <textarea id="deskripsi_dimensi" rows="3" placeholder="Contoh: Siswa diharapkan mampu mengenali..."></textarea>
+                    </div>
+                </div>
+                <form id="form-p5">
+                    <div class="table-responsive">
+                        <table id="tabel-p5" style="display: none;">
+                            <thead><tr><th>Nama Siswa (NISN)</th><th>Capaian (BB/MB/BSH/SB)</th><th>Catatan Proses Observasi</th></tr></thead>
+                            <tbody id="tbody-p5"></tbody>
+                        </table>
+                    </div>
+                    <button type="submit" id="btn-simpan-p5" class="btn btn-danger" style="display: none; padding: 15px; font-size: 1rem; margin-top: 15px;">💾 Simpan Nilai P5</button>
+                </form>
+            </div>
+
+            <div id="tab-ekskul" class="page-section">
+                <div class="card" style="border-top: 4px solid var(--warning);">
+                    <div class="filter-grid">
+                        <div><label>Pilih Ekstrakurikuler</label><select id="ek_nama"><option value="">- Memuat Ekskul... -</option></select></div>
+                        <div><label>Kelas</label><select id="ek_kelas" class="kelas-dropdown"><option value="">- Pilih Kelas -</option></select></div>
+                        <div><button class="btn btn-warning" onclick="loadSiswaEkskul()">🔍 Tampilkan</button></div>
+                    </div>
+                </div>
+                <form id="form-ekskul">
+                    <div class="table-responsive">
+                        <table id="tabel-ekskul" style="display: none;">
+                            <thead><tr><th>Nama Siswa (NISN)</th><th>Predikat Kemampuan</th><th>Deskripsi Keterampilan</th></tr></thead>
+                            <tbody id="tbody-ekskul"></tbody>
+                        </table>
+                    </div>
+                    <button type="submit" id="btn-simpan-ek" class="btn btn-warning" style="display: none; padding: 15px; font-size: 1rem; margin-top: 15px;">💾 Simpan Nilai Ekstrakurikuler</button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { supabase, checkSession } from './app.js'
+
+        let guruId = null; let userRoles = []; let curAnggotaKelas = []; 
+        window.aktifTapelId = null; window.aktifTapelNama = "";
+        window.isGlobalLocked = false; // VARIABEL UNTUK KUNCI NILAI
+
+        const navLinks = document.querySelectorAll('.nav-link'); const pages = document.querySelectorAll('.page-section'); const topbarTitle = document.getElementById('page-title');
+        navLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); navLinks.forEach(l => l.classList.remove('active')); e.target.classList.add('active'); topbarTitle.textContent = e.target.textContent.replace(/[^\w\s]/gi, '').trim(); pages.forEach(p => p.classList.remove('active')); document.getElementById(e.target.getAttribute('data-target')).classList.add('active'); }); });
+        document.getElementById('btn-logout').addEventListener('click', async () => { if(confirm("Keluar dari sistem?")) { localStorage.removeItem('aktif_tapel_id'); localStorage.removeItem('aktif_tapel_nama'); await supabase.auth.signOut(); window.location.replace('index.html'); } });
+
+        async function init() {
+            const session = await checkSession(); if (!session) return window.location.href = 'index.html'; guruId = session.user.id;
+            window.aktifTapelId = localStorage.getItem('aktif_tapel_id'); window.aktifTapelNama = localStorage.getItem('aktif_tapel_nama');
+            if(!window.aktifTapelId) { alert("Sesi Tapel tidak ditemukan! Login ulang."); return window.location.replace('index.html'); }
+            document.getElementById('tapel-badge').textContent = `🎓 ${window.aktifTapelNama}`;
+
+            // CEK STATUS KUNCI NILAI DARI DATABASE
+            const { data: tapelData } = await supabase.from('tahun_ajaran').select('is_locked').eq('id', window.aktifTapelId).single();
+            if(tapelData && tapelData.is_locked) {
+                window.isGlobalLocked = true;
+                document.getElementById('banner-terkunci').style.display = 'flex'; // Munculkan peringatan merah
+            }
+
+            const { data: profile } = await supabase.from('profiles').select('full_name, roles, nip').eq('id', guruId).single();
+            if (profile) {
+                document.getElementById('user-info-name').textContent = `Halo, ${profile.full_name}`; userRoles = profile.roles || [];
+                document.getElementById('prof_nama').value = profile.full_name || ''; document.getElementById('prof_nip').value = profile.nip || '';
+                if(userRoles.includes('admin') || userRoles.includes('guru')) document.getElementById('nav-guru').style.display = 'block';
+                if(userRoles.includes('admin') || userRoles.includes('wali_kelas')) document.getElementById('nav-walas').style.display = 'block';
+                if(userRoles.includes('admin') || userRoles.includes('koordinator_p5')) document.getElementById('nav-p5').style.display = 'block';
+                if(userRoles.includes('admin') || userRoles.includes('pembina_ekstra')) document.getElementById('nav-ekskul').style.display = 'block';
+            }
+            loadMasterDropdowns();
+        }
+
+        document.getElementById('form-profil').addEventListener('submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-simpan-profil'); btn.textContent = 'Menyimpan...'; btn.disabled = true; const namaBaru = document.getElementById('prof_nama').value; const nipBaru = document.getElementById('prof_nip').value; const { error } = await supabase.from('profiles').update({ full_name: namaBaru, nip: nipBaru }).eq('id', guruId); if (error) alert("Gagal menyimpan: " + error.message); else { alert("✅ Profil berhasil diupdate!"); document.getElementById('user-info-name').textContent = `Halo, ${namaBaru}`; } btn.textContent = '💾 Simpan Profil'; btn.disabled = false; });
+
+        async function loadMasterDropdowns() {
+            if(window.aktifTapelNama && window.aktifTapelNama.toLowerCase().includes('genap')) { const btnKenaikan = document.getElementById('btn-kenaikan-kelas'); if(btnKenaikan) btnKenaikan.style.display = 'inline-block'; }
+            const { data: kelasSemua } = await supabase.from('kelas').select('id, nama_kelas').order('nama_kelas');
+            document.querySelectorAll('.kelas-dropdown').forEach(select => { if(select.id !== 'wl_kelas' && kelasSemua) { kelasSemua.forEach(k => select.innerHTML += `<option value="${k.id}">${k.nama_kelas}</option>`); } });
+            if (userRoles.includes('wali_kelas') || userRoles.includes('admin')) { let query = supabase.from('kelas').select('id, nama_kelas').order('nama_kelas'); if (!userRoles.includes('admin')) query = query.eq('wali_kelas_id', guruId); const { data: kelasBinaan } = await query; const selWalas = document.getElementById('wl_kelas'); if (kelasBinaan && kelasBinaan.length > 0) { kelasBinaan.forEach(k => selWalas.innerHTML += `<option value="${k.id}">${k.nama_kelas}</option>`); } else { selWalas.innerHTML = '<option value="">(Belum ditugaskan di kelas)</option>'; } }
+            if (userRoles.includes('guru') || userRoles.includes('admin')) { const { data: mapel } = await supabase.from('mata_pelajaran').select('id, nama_mapel').order('nama_mapel'); const selMapel = document.getElementById('ak_mapel'); if(mapel) mapel.forEach(m => selMapel.innerHTML += `<option value="${m.id}">${m.nama_mapel}</option>`); }
+            if (userRoles.includes('koordinator_p5') || userRoles.includes('admin')) { const { data: p5 } = await supabase.from('proyek_p5').select('id, nama_proyek, tema').eq('tahun_ajaran_id', window.aktifTapelId); const selP5 = document.getElementById('p5_proyek'); if(p5 && p5.length > 0) { p5.forEach(p => selP5.innerHTML += `<option value="${p.id}">${p.nama_proyek} (${p.tema})</option>`); } else { selP5.innerHTML = '<option value="">(Belum ada proyek)</option>'; } }
+            if (userRoles.includes('pembina_ekstra') || userRoles.includes('admin')) { const { data: eks } = await supabase.from('ekstrakurikuler').select('id, nama_ekskul'); const selEks = document.getElementById('ek_nama'); if(eks && eks.length > 0) eks.forEach(e => selEks.innerHTML += `<option value="${e.id}">${e.nama_ekskul}</option>`); }
+        }
+
+        window.loadSiswaAkademik = async () => {
+            const mapelId = document.getElementById('ak_mapel').value; const kelasId = document.getElementById('ak_kelas').value; const tbody = document.getElementById('tbody-akademik');
+            if(!mapelId || !kelasId) return alert("Pilih Mapel dan Kelas!");
+            tbody.innerHTML = '<tr><td colspan="6">Memuat data...</td></tr>'; document.getElementById('tabel-akademik').style.display = 'table'; document.getElementById('btn-simpan-ak').style.display = 'none';
+            let pengampuId = null; const { data: pgm } = await supabase.from('pengampu_mapel').select('id').eq('guru_id', guruId).eq('mapel_id', mapelId).eq('kelas_id', kelasId).single(); if(pgm) pengampuId = pgm.id;
+            const { data: anggota } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn, agama)`).eq('kelas_id', kelasId);
+            if(!anggota || anggota.length === 0) return tbody.innerHTML = '<tr><td colspan="6" style="color:red">Tidak ada siswa.</td></tr>';
+            const selMapel = document.getElementById('ak_mapel'); const mapelName = selMapel.options[selMapel.selectedIndex].text.toLowerCase(); let filteredAnggota = anggota;
+            if (mapelName.includes('islam')) { filteredAnggota = anggota.filter(a => a.siswa.agama && a.siswa.agama.toLowerCase() === 'islam'); } else if (mapelName.includes('kristen')) { filteredAnggota = anggota.filter(a => a.siswa.agama && a.siswa.agama.toLowerCase() === 'kristen'); } else if (mapelName.includes('buddha')) { filteredAnggota = anggota.filter(a => a.siswa.agama && a.siswa.agama.toLowerCase() === 'buddha'); } else if (mapelName.includes('hindu')) { filteredAnggota = anggota.filter(a => a.siswa.agama && a.siswa.agama.toLowerCase() === 'hindu'); } else if (mapelName.includes('katolik')) { filteredAnggota = anggota.filter(a => a.siswa.agama && a.siswa.agama.toLowerCase() === 'katolik'); }
+            let mapNilai = {}; if (pengampuId) { const { data: nilaiExisting } = await supabase.from('nilai_akademik').select('*').eq('pengampu_mapel_id', pengampuId); if(nilaiExisting) nilaiExisting.forEach(n => mapNilai[n.anggota_kelas_id] = n); }
+            curAnggotaKelas = filteredAnggota; tbody.innerHTML = '';
+            filteredAnggota.forEach(a => { const n = mapNilai[a.id] || {}; tbody.innerHTML += `<tr><td style="text-align:left;"><b>${a.siswa.nama_lengkap}</b><br><small>${a.siswa.nisn}</small></td><td><input type="number" id="ak_f_${a.id}" value="${n.nilai_formatif || ''}"></td><td><input type="number" id="ak_s_${a.id}" value="${n.nilai_sumatif || ''}"></td><td><input type="number" id="ak_sas_${a.id}" value="${n.nilai_sas || ''}"></td><td><input type="number" id="ak_na_${a.id}" value="${n.nilai_akhir || ''}"></td><td><textarea id="ak_desc_${a.id}">${n.deskripsi_capaian || ''}</textarea></td></tr>`; });
+            
+            // JIKA TERKUNCI: Sembunyikan tombol simpan dan import CSV
+            if(window.isGlobalLocked) {
+                document.getElementById('ak_csv_tools').style.display = 'none';
+            } else {
+                document.getElementById('btn-simpan-ak').style.display = 'block'; document.getElementById('ak_csv_tools').style.display = 'flex';
+            }
+        };
+
+        document.getElementById('form-akademik').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('btn-simpan-ak'); btn.textContent = 'Menyimpan...'; btn.disabled = true;
+            const mapelId = document.getElementById('ak_mapel').value; const kelasId = document.getElementById('ak_kelas').value;
+            let { data: pengampu } = await supabase.from('pengampu_mapel').select('id').eq('guru_id', guruId).eq('mapel_id', mapelId).eq('kelas_id', kelasId).single();
+            let pId = pengampu ? pengampu.id : (await supabase.from('pengampu_mapel').insert([{guru_id: guruId, mapel_id: mapelId, kelas_id: kelasId}]).select().single()).data.id;
+            for(let a of curAnggotaKelas) { const f = document.getElementById(`ak_f_${a.id}`).value || 0; const s = document.getElementById(`ak_s_${a.id}`).value || 0; const sas = document.getElementById(`ak_sas_${a.id}`).value || 0; const na = document.getElementById(`ak_na_${a.id}`).value || 0; const desc = document.getElementById(`ak_desc_${a.id}`).value; const { data: cek } = await supabase.from('nilai_akademik').select('id').eq('anggota_kelas_id', a.id).eq('pengampu_mapel_id', pId).single(); if(cek) await supabase.from('nilai_akademik').update({nilai_formatif: f, nilai_sumatif: s, nilai_sas: sas, nilai_akhir: na, deskripsi_capaian: desc}).eq('id', cek.id); else await supabase.from('nilai_akademik').insert([{anggota_kelas_id: a.id, pengampu_mapel_id: pId, nilai_formatif: f, nilai_sumatif: s, nilai_sas: sas, nilai_akhir: na, deskripsi_capaian: desc}]); }
+            alert("✅ Tersimpan!"); btn.textContent = '💾 Simpan Nilai Akademik'; btn.disabled = false;
+        });
+
+        window.loadSiswaWalas = async () => {
+            const kelasId = document.getElementById('wl_kelas').value; const tbody = document.getElementById('tbody-walas'); if(!kelasId) return alert("Pilih Kelas!");
+            tbody.innerHTML = '<tr><td colspan="6">Memuat data...</td></tr>'; document.getElementById('tabel-walas').style.display = 'table'; document.getElementById('btn-simpan-wl').style.display = 'none';
+            const { data: anggota } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn, status_akademik)`).eq('kelas_id', kelasId); if(!anggota || anggota.length === 0) return tbody.innerHTML = '<tr><td colspan="6" style="color:red">Tidak ada siswa.</td></tr>';
+            const { data: absenExisting } = await supabase.from('absensi_catatan').select('*').in('anggota_kelas_id', anggota.map(a=>a.id)); let mapAbsen = {}; if(absenExisting) absenExisting.forEach(n => mapAbsen[n.anggota_kelas_id] = n);
+            curAnggotaKelas = anggota; tbody.innerHTML = '';
+            anggota.forEach(a => { const n = mapAbsen[a.id] || {}; const statSiswa = a.siswa.status_akademik && a.siswa.status_akademik !== 'Aktif' ? `<br><span style="color:#059669; font-size:0.8rem; font-weight:bold;">[${a.siswa.status_akademik}]</span>` : ''; tbody.innerHTML += `<tr><td style="text-align:left;"><b>${a.siswa.nama_lengkap}</b><br><small>${a.siswa.nisn}</small>${statSiswa}</td><td><input type="number" id="wl_s_${a.id}" value="${n.sakit || 0}"></td><td><input type="number" id="wl_i_${a.id}" value="${n.izin || 0}"></td><td><input type="number" id="wl_a_${a.id}" value="${n.tanpa_keterangan || 0}"></td><td><textarea id="wl_c_${a.id}">${n.catatan_wali_kelas || ''}</textarea></td><td><button type="button" class="btn btn-dark" style="padding: 6px; font-size: 0.8rem; margin-bottom: 5px;" onclick="window.open('cetak_sampul.html?id=${a.id}', '_blank')">📄 Sampul</button><button type="button" class="btn btn-primary" style="padding: 6px; font-size: 0.8rem; margin-bottom: 5px;" onclick="window.open('cetak_akademik.html?id=${a.id}', '_blank')">📄 Akademik</button><button type="button" class="btn btn-danger" style="padding: 6px; font-size: 0.8rem;" onclick="window.open('cetak_p5.html?id=${a.id}', '_blank')">🌟 Rapor P5</button></td></tr>`; });
+            
+            // JIKA TIDAK TERKUNCI: Munculkan tombol simpan
+            if(!window.isGlobalLocked) document.getElementById('btn-simpan-wl').style.display = 'block';
+        };
+
+        document.getElementById('form-walas').addEventListener('submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-simpan-wl'); btn.textContent = 'Menyimpan...'; btn.disabled = true; for(let a of curAnggotaKelas) { const s = document.getElementById(`wl_s_${a.id}`).value || 0; const i = document.getElementById(`wl_i_${a.id}`).value || 0; const alpa = document.getElementById(`wl_a_${a.id}`).value || 0; const c = document.getElementById(`wl_c_${a.id}`).value; const { data: cek } = await supabase.from('absensi_catatan').select('id').eq('anggota_kelas_id', a.id).single(); if(cek) await supabase.from('absensi_catatan').update({sakit: s, izin: i, tanpa_keterangan: alpa, catatan_wali_kelas: c}).eq('id', cek.id); else await supabase.from('absensi_catatan').insert([{anggota_kelas_id: a.id, sakit: s, izin: i, tanpa_keterangan: alpa, catatan_wali_kelas: c}]); } alert("✅ Tersimpan!"); btn.textContent = '💾 Simpan Absensi & Catatan'; btn.disabled = false; });
+
+        window.prosesKenaikanKelas = async () => { if(window.isGlobalLocked) return alert("❌ Pengisian nilai sedang dikunci Admin. Anda tidak bisa memproses kelulusan!"); const kelasId = document.getElementById('wl_kelas').value; if(!kelasId) return alert("Pilih Kelas!"); const { data: kelasInfo } = await supabase.from('kelas').select('nama_kelas, tingkat').eq('id', kelasId).single(); let tingkatSekarang = parseInt(kelasInfo.tingkat); let statusBaru = ""; let pesanKonfirmasi = ""; if(tingkatSekarang === 7) { statusBaru = "Naik ke Kelas 8"; pesanKonfirmasi = `Memproses NAIK KE KELAS 8?`; } else if(tingkatSekarang === 8) { statusBaru = "Naik ke Kelas 9"; pesanKonfirmasi = `Memproses NAIK KE KELAS 9?`; } else if(tingkatSekarang === 9) { statusBaru = "Lulus"; pesanKonfirmasi = `Memproses LULUS?`; } if(!confirm(pesanKonfirmasi)) return; const { data: anggota } = await supabase.from('anggota_kelas').select('siswa_id').eq('kelas_id', kelasId); const siswaIds = anggota.map(a => a.siswa_id); const { error } = await supabase.from('siswa').update({ status_akademik: statusBaru }).in('id', siswaIds); if(error) alert("Error: " + error.message); else alert(`✅ Berhasil!`); loadSiswaWalas(); };
+        window.downloadLegerKelas = async () => { /* Logika leger sama seperti sebelumnya, aman tidak merubah DB */ const kelasId = document.getElementById('wl_kelas').value; if(!kelasId) return alert("Pilih Kelas Binaan Anda terlebih dahulu."); const dropdown = document.getElementById('wl_kelas'); const kelasName = dropdown.options[dropdown.selectedIndex].text; const { data: anggota } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn)`).eq('kelas_id', kelasId); const anggotaIds = anggota.map(a => a.id); const { data: pgm } = await supabase.from('pengampu_mapel').select('id, mata_pelajaran(nama_mapel)').eq('kelas_id', kelasId); let mapelMap = {}; let mapelArray = []; if(pgm) { pgm.forEach(p => { mapelMap[p.id] = p.mata_pelajaran.nama_mapel; if(!mapelArray.includes(p.mata_pelajaran.nama_mapel)) mapelArray.push(p.mata_pelajaran.nama_mapel); }); } mapelArray.sort(); const { data: nilai } = await supabase.from('nilai_akademik').select('anggota_kelas_id, pengampu_mapel_id, nilai_akhir').in('anggota_kelas_id', anggotaIds); const { data: absen } = await supabase.from('absensi_catatan').select('anggota_kelas_id, sakit, izin, tanpa_keterangan').in('anggota_kelas_id', anggotaIds); let mapAbsen = {}; if(absen) absen.forEach(a => mapAbsen[a.anggota_kelas_id] = a); let dataLeger = anggota.map(a => { let rowData = { "NISN": a.siswa.nisn, "NAMA SISWA": a.siswa.nama_lengkap }; let totalNilai = 0; let jumlahMapelDiisi = 0; mapelArray.forEach(m => { rowData[m] = ''; }); if (nilai) { let nilaiAnak = nilai.filter(n => n.anggota_kelas_id === a.id); nilaiAnak.forEach(n => { let namaMapel = mapelMap[n.pengampu_mapel_id]; let nilaiAkhir = n.nilai_akhir || 0; if (namaMapel) { rowData[namaMapel] = nilaiAkhir; totalNilai += parseFloat(nilaiAkhir); jumlahMapelDiisi++; } }); } rowData["TOTAL NILAI"] = totalNilai; rowData["RATA-RATA"] = jumlahMapelDiisi > 0 ? (totalNilai / jumlahMapelDiisi).toFixed(2) : 0; let abs = mapAbsen[a.id] || { sakit: 0, izin: 0, tanpa_keterangan: 0 }; rowData["SAKIT"] = abs.sakit || 0; rowData["IZIN"] = abs.izin || 0; rowData["ALPA"] = abs.tanpa_keterangan || 0; return rowData; }); let csv = Papa.unparse(dataLeger); let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Leger_Nilai_Kelas_${kelasName}.csv`; link.click(); };
+
+        window.loadSiswaP5 = async () => {
+            const pId = document.getElementById('p5_proyek').value; const kId = document.getElementById('p5_kelas').value; const dim = document.getElementById('p5_dimensi').value; const tbody = document.getElementById('tbody-p5'); if(!pId || !kId || !dim) return alert("Pilih Lengkap!");
+            tbody.innerHTML = '<tr><td colspan="3">Memuat data...</td></tr>'; document.getElementById('tabel-p5').style.display = 'table'; document.getElementById('btn-simpan-p5').style.display = 'none';
+            const { data: proyek } = await supabase.from('proyek_p5').select('*').eq('id', pId).single(); if(proyek) { let descText = ""; if (dim === "Beriman & Bertakwa") descText = proyek.desc_beriman; else if (dim === "Berkebinekaan Global") descText = proyek.desc_berkebinekaan; else if (dim === "Bergotong Royong") descText = proyek.desc_gotong_royong; else if (dim === "Mandiri") descText = proyek.desc_mandiri; else if (dim === "Bernalar Kritis") descText = proyek.desc_kritis; else if (dim === "Kreatif") descText = proyek.desc_kreatif; document.getElementById('deskripsi_dimensi').value = descText || ""; document.getElementById('area-deskripsi-dimensi').style.display = 'block'; }
+            const { data: anggota } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn)`).eq('kelas_id', kId); if(!anggota || anggota.length === 0) return tbody.innerHTML = '<tr><td colspan="3" style="color:red">Tidak ada siswa.</td></tr>';
+            const { data: existing } = await supabase.from('nilai_p5').select('*').in('anggota_kelas_id', anggota.map(a=>a.id)).eq('proyek_id', pId).eq('dimensi', dim); let mapP5 = {}; if(existing) existing.forEach(n => mapP5[n.anggota_kelas_id] = n);
+            curAnggotaKelas = anggota; tbody.innerHTML = ''; anggota.forEach(a => { const n = mapP5[a.id] || {}; const val = n.capaian || ''; tbody.innerHTML += `<tr><td style="text-align:left;"><b>${a.siswa.nama_lengkap}</b></td><td><select id="p5_c_${a.id}"><option value="">- Capaian -</option><option value="BB" ${val==='BB'?'selected':''}>BB</option><option value="MB" ${val==='MB'?'selected':''}>MB</option><option value="BSH" ${val==='BSH'?'selected':''}>BSH</option><option value="SB" ${val==='SB'?'selected':''}>SB</option></select></td><td><textarea id="p5_desc_${a.id}">${n.catatan || ''}</textarea></td></tr>`; });
+            
+            // JIKA TIDAK TERKUNCI: Munculkan tombol simpan
+            if(!window.isGlobalLocked) document.getElementById('btn-simpan-p5').style.display = 'block';
+        };
+
+        document.getElementById('form-p5').addEventListener('submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-simpan-p5'); btn.textContent = 'Menyimpan...'; btn.disabled = true; const pId = document.getElementById('p5_proyek').value; const dim = document.getElementById('p5_dimensi').value; const descDim = document.getElementById('deskripsi_dimensi').value; let updateData = {}; if (dim === "Beriman & Bertakwa") updateData = { desc_beriman: descDim }; else if (dim === "Berkebinekaan Global") updateData = { desc_berkebinekaan: descDim }; else if (dim === "Bergotong Royong") updateData = { desc_gotong_royong: descDim }; else if (dim === "Mandiri") updateData = { desc_mandiri: descDim }; else if (dim === "Bernalar Kritis") updateData = { desc_kritis: descDim }; else if (dim === "Kreatif") updateData = { desc_kreatif: descDim }; if(Object.keys(updateData).length > 0) { await supabase.from('proyek_p5').update(updateData).eq('id', pId); } for(let a of curAnggotaKelas) { const c = document.getElementById(`p5_c_${a.id}`).value; const desc = document.getElementById(`p5_desc_${a.id}`).value; if(!c) continue; const { data: cek } = await supabase.from('nilai_p5').select('id').eq('anggota_kelas_id', a.id).eq('proyek_id', pId).eq('dimensi', dim).single(); if(cek) await supabase.from('nilai_p5').update({capaian: c, catatan: desc}).eq('id', cek.id); else await supabase.from('nilai_p5').insert([{anggota_kelas_id: a.id, proyek_id: pId, dimensi: dim, capaian: c, catatan: desc}]); } alert("✅ Tersimpan!"); btn.textContent = '💾 Simpan Nilai P5'; btn.disabled = false; });
+
+        window.loadSiswaEkskul = async () => {
+            const eId = document.getElementById('ek_nama').value; const kId = document.getElementById('ek_kelas').value; const tbody = document.getElementById('tbody-ekskul'); if(!eId || !kId) return alert("Pilih Ekskul dan Kelas!");
+            tbody.innerHTML = '<tr><td colspan="3">Memuat data...</td></tr>'; document.getElementById('tabel-ekskul').style.display = 'table'; document.getElementById('btn-simpan-ek').style.display = 'none';
+            const { data: anggota } = await supabase.from('anggota_kelas').select(`id, siswa(nama_lengkap, nisn)`).eq('kelas_id', kId); if(!anggota || anggota.length === 0) return tbody.innerHTML = '<tr><td colspan="3" style="color:red">Tidak ada siswa.</td></tr>';
+            const { data: existing } = await supabase.from('nilai_ekskul').select('*').in('anggota_kelas_id', anggota.map(a=>a.id)).eq('ekskul_id', eId); let mapEks = {}; if(existing) existing.forEach(n => mapEks[n.anggota_kelas_id] = n);
+            curAnggotaKelas = anggota; tbody.innerHTML = ''; anggota.forEach(a => { const n = mapEks[a.id] || {}; const val = n.predikat || ''; tbody.innerHTML += `<tr><td style="text-align:left;"><b>${a.siswa.nama_lengkap}</b></td><td><select id="ek_p_${a.id}"><option value="">- Predikat -</option><option value="Sangat Baik" ${val==='Sangat Baik'?'selected':''}>Sangat Baik</option><option value="Baik" ${val==='Baik'?'selected':''}>Baik</option><option value="Cukup" ${val==='Cukup'?'selected':''}>Cukup</option><option value="Kurang" ${val==='Kurang'?'selected':''}>Kurang</option></select></td><td><textarea id="ek_desc_${a.id}">${n.deskripsi || ''}</textarea></td></tr>`; });
+            
+            // JIKA TIDAK TERKUNCI: Munculkan tombol simpan
+            if(!window.isGlobalLocked) document.getElementById('btn-simpan-ek').style.display = 'block';
+        };
+
+        document.getElementById('form-ekskul').addEventListener('submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-simpan-ek'); btn.textContent = 'Menyimpan...'; btn.disabled = true; const eId = document.getElementById('ek_nama').value; for(let a of curAnggotaKelas) { const p = document.getElementById(`ek_p_${a.id}`).value; const desc = document.getElementById(`ek_desc_${a.id}`).value; if(!p && !desc) continue; const { data: cek } = await supabase.from('nilai_ekskul').select('id').eq('anggota_kelas_id', a.id).eq('ekskul_id', eId).single(); if(cek) await supabase.from('nilai_ekskul').update({predikat: p, deskripsi: desc}).eq('id', cek.id); else await supabase.from('nilai_ekskul').insert([{anggota_kelas_id: a.id, ekskul_id: eId, predikat: p, deskripsi: desc}]); } alert("✅ Tersimpan!"); btn.textContent = '💾 Simpan Nilai Ekstrakurikuler'; btn.disabled = false; });
+        
+        document.getElementById('btn-download-csv').addEventListener('click', () => { let dataLaporan = curAnggotaKelas.map(a => { return { "NISN": a.siswa.nisn, "NAMA_SISWA": a.siswa.nama_lengkap, "FORMATIF": document.getElementById(`ak_f_${a.id}`).value || '', "SUMATIF": document.getElementById(`ak_s_${a.id}`).value || '', "SAS": document.getElementById(`ak_sas_${a.id}`).value || '', "NILAI_AKHIR": document.getElementById(`ak_na_${a.id}`).value || '', "DESKRIPSI_CAPAIAN": document.getElementById(`ak_desc_${a.id}`).value || '' } }); let csv = Papa.unparse(dataLaporan); let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Template_Nilai_Akademik.csv`; link.click(); });
+        document.getElementById('btn-upload-csv').addEventListener('click', () => { const fileInput = document.getElementById('file-csv-nilai'); if (!fileInput.files.length) return alert("Pilih file CSV!"); Papa.parse(fileInput.files[0], { header: true, skipEmptyLines: true, complete: function(results) { let sukses = 0; results.data.forEach(row => { const anggota = curAnggotaKelas.find(a => a.siswa.nisn == row.NISN); if (anggota) { if(row.FORMATIF) document.getElementById(`ak_f_${anggota.id}`).value = row.FORMATIF; if(row.SUMATIF) document.getElementById(`ak_s_${anggota.id}`).value = row.SUMATIF; if(row.SAS) document.getElementById(`ak_sas_${anggota.id}`).value = row.SAS; if(row.NILAI_AKHIR) document.getElementById(`ak_na_${anggota.id}`).value = row.NILAI_AKHIR; if(row.DESKRIPSI_CAPAIAN) document.getElementById(`ak_desc_${anggota.id}`).value = row.DESKRIPSI_CAPAIAN; sukses++; } }); alert(`✅ Memuat ${sukses} data ke layar! Silakan klik "Simpan".`); fileInput.value = ''; }}); });
+
+        init();
+    </script>
+</body>
+</html>
+

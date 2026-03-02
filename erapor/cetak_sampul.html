@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak Sampul & Biodata Rapor</title>
+    <style>
+        /* Pengaturan Dasar Kertas A4 */
+        @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:wght@400;700&display=swap');
+        
+        @page {
+            size: A4;
+            margin: 2cm 2cm;
+        }
+
+        body {
+            font-family: Tahoma, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #000;
+            font-size: 11pt;
+            line-height: 1.3; /* Diubah dari 1.5 agar lebih rapat dan muat 1 halaman */
+        }
+
+        /* Kelas untuk memisahkan setiap halaman (Page Break) */
+        .page {
+            page-break-after: always;
+            position: relative;
+            min-height: 25cm;
+            padding: 0.5cm 0; /* Diubah dari 1cm agar menghemat ruang vertikal */
+            box-sizing: border-box;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-bold { font-weight: bold; }
+        .mt-1 { margin-top: 10px; } .mt-2 { margin-top: 20px; } .mt-3 { margin-top: 30px; } .mt-5 { margin-top: 50px; }
+        .mb-1 { margin-bottom: 10px; } .mb-2 { margin-bottom: 20px; }
+
+        /* --- HALAMAN 1: COVER --- */
+        .cover-title { font-size: 16pt; font-weight: bold; margin-bottom: 5px; }
+        .cover-subtitle { font-size: 14pt; font-weight: bold; margin-bottom: 40px; }
+        .cover-logos { display: flex; justify-content: center; gap: 40px; margin: 40px 0; }
+        .cover-logos img { width: 100px; height: auto; }
+        
+        .student-box {
+            border: 1px solid #000;
+            padding: 20px;
+            width: 60%;
+            margin: 0 auto 50px auto;
+            text-align: center;
+        }
+
+        /* --- HALAMAN 2 & 3: IDENTITAS --- */
+        .section-title { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 10px; text-decoration: underline;}
+        
+        table.table-no-border { width: 100%; border-collapse: collapse; }
+        table.table-no-border td { padding: 2px 0; vertical-align: top; } /* Diubah dari 4px menjadi 2px */
+        table.table-no-border td:first-child { width: 35%; }
+        table.table-no-border td:nth-child(2) { width: 3%; text-align: center; }
+
+        /* --- HALAMAN 4 & 5: MUTASI --- */
+        table.table-bordered { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.table-bordered th, table.table-bordered td { border: 1px solid #000; padding: 8px; vertical-align: top; }
+        table.table-bordered th { text-align: center; font-weight: bold; }
+
+        /* Sembunyikan tombol cetak saat diprint */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; }
+        }
+
+        /* Tampilan tombol cetak di layar */
+        .print-btn-container {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+        }
+        .btn-print {
+            background-color: #2563eb; color: white; border: none; padding: 10px 20px;
+            font-size: 14px; border-radius: 5px; cursor: pointer; font-family: sans-serif;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-print:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <div class="print-btn-container no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ Cetak Dokumen</button>
+    </div>
+
+    <div class="page text-center">
+        <div class="cover-logos">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_Makassar.png/400px-Logo_Makassar.png" alt="Logo Pemkot">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_Tut_Wuri_Handayani.png" alt="Logo Tut Wuri">
+        </div>
+
+        <div class="cover-title mt-5">RAPOR PESERTA DIDIK</div>
+        <div class="cover-title">SEKOLAH MENENGAH PERTAMA</div>
+        <div class="cover-title mb-2">(SMP)</div>
+
+        <div class="cover-title mt-5" id="cover-nama-sekolah">UPT SPF SMP NEGERI 13 MAKASSAR</div>
+        <div class="text-bold mt-1">RELIGIUS, DISIPLIN, PEDULI</div>
+
+        <div class="mt-5 mb-2" style="font-size: 12pt;">Nama Peserta Didik:</div>
+        <div class="student-box">
+            <h2 style="margin: 0; font-size: 16pt; text-transform: uppercase;" id="cover-nama-siswa">MEMUAT NAMA...</h2>
+        </div>
+
+        <div style="font-size: 12pt;">NISN / NIS:</div>
+        <div class="text-bold" style="font-size: 14pt; margin-top: 5px;" id="cover-nisn">... / ...</div>
+
+        <div class="text-bold mt-5" style="position: absolute; bottom: 3cm; width: 100%;">
+            KEMENTERIAN PENDIDIKAN DASAR DAN MENENGAH<br>
+            REPUBLIK INDONESIA
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="section-title">IDENTITAS SEKOLAH</div>
+        
+        <table class="table-no-border mt-3">
+            <tr><td>Nama Sekolah</td><td>:</td><td class="text-bold">UPT SPF SMP NEGERI 13 MAKASSAR</td></tr>
+            <tr><td>NPSN</td><td>:</td><td>40307334</td></tr>
+            <tr><td>NIS / NSS / NDS</td><td>:</td><td>201196009068</td></tr>
+            <tr><td>Alamat Sekolah</td><td>:</td><td>Jl. Tamalate VI No. 2 Perumnas-Panakkukang<br>Makassar</td></tr>
+            <tr><td>Kelurahan / Desa</td><td>:</td><td>Kassi-Kassi</td></tr>
+            <tr><td>Kecamatan</td><td>:</td><td>Kec. Rappocini</td></tr>
+            <tr><td>Kota / Kabupaten</td><td>:</td><td>Kota Makassar</td></tr>
+            <tr><td>Provinsi</td><td>:</td><td>Prov. Sulawesi Selatan</td></tr>
+            <tr><td>Website</td><td>:</td><td>https://smpn13makassar.my.id</td></tr>
+            <tr><td>E-mail</td><td>:</td><td>smpn13_mksr@yahoo.co.id</td></tr>
+        </table>
+    </div>
+
+    <div class="page">
+        <div class="section-title">IDENTITAS PESERTA DIDIK</div>
+
+        <table class="table-no-border mt-2">
+            <tr><td>1. Nama Lengkap Peserta Didik</td><td>:</td><td class="text-bold" id="bio-nama">...</td></tr>
+            <tr><td>2. Nomor Induk / NISN</td><td>:</td><td id="bio-nisn">...</td></tr>
+            <tr><td>3. Tempat, Tanggal Lahir</td><td>:</td><td id="bio-ttl">...</td></tr>
+            <tr><td>4. Jenis Kelamin</td><td>:</td><td id="bio-jk">...</td></tr>
+            <tr><td>5. Agama</td><td>:</td><td id="bio-agama">...</td></tr>
+            <tr><td>6. Status dalam Keluarga</td><td>:</td><td id="bio-status">Anak Kandung</td></tr>
+            <tr><td>7. Anak ke</td><td>:</td><td id="bio-anak-ke">...</td></tr>
+            <tr><td>8. Alamat Peserta Didik</td><td>:</td><td id="bio-alamat">...</td></tr>
+            <tr><td>9. Nomor Telepon Rumah/HP</td><td>:</td><td id="bio-telp">...</td></tr>
+            <tr><td>10. Sekolah Asal</td><td>:</td><td id="bio-sekolah-asal">...</td></tr>
+            <tr><td colspan="3" class="mt-1">11. Diterima di sekolah ini</td></tr>
+            <tr><td style="padding-left: 20px;">a. Di kelas</td><td>:</td><td>VII</td></tr>
+            <tr><td style="padding-left: 20px;">b. Pada tanggal</td><td>:</td><td>14 Juli 2026</td></tr>
+            <tr><td colspan="3" class="mt-1">12. Nama Orang Tua</td></tr>
+            <tr><td style="padding-left: 20px;">a. Ayah</td><td>:</td><td id="bio-ayah">...</td></tr>
+            <tr><td style="padding-left: 20px;">b. Ibu</td><td>:</td><td id="bio-ibu">...</td></tr>
+            <tr><td>13. Alamat Orang Tua</td><td>:</td><td id="bio-alamat-ortu">...</td></tr>
+            <tr><td>14. Nomor Telepon Orang Tua</td><td>:</td><td id="bio-telp-ortu">...</td></tr>
+            <tr><td colspan="3" class="mt-1">15. Pekerjaan Orang Tua</td></tr>
+            <tr><td style="padding-left: 20px;">a. Ayah</td><td>:</td><td id="bio-kerja-ayah">...</td></tr>
+            <tr><td style="padding-left: 20px;">b. Ibu</td><td>:</td><td id="bio-kerja-ibu">...</td></tr>
+            <tr><td>16. Nama Wali Siswa</td><td>:</td><td id="bio-wali">-</td></tr>
+            <tr><td>17. Alamat Wali Peserta Didik</td><td>:</td><td id="bio-alamat-wali">-</td></tr>
+            <tr><td>18. Pekerjaan Wali Peserta Didik</td><td>:</td><td id="bio-kerja-wali">-</td></tr>
+        </table>
+
+        <table style="width: 100%; margin-top: 15px;">
+            <tr>
+                <td style="width: 10%; text-align: center;">
+                    <div style="width: 3cm; height: 4cm; border: 1px solid #000; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        Pas Foto<br>3 x 4
+                    </div>
+                </td>
+                <td style="width: 50%;"></td>
+                <td style="width: 40%; text-align: left;">
+                    Makassar, 14 Juli 2024<br>
+                    Kepala Sekolah,<br><br><br><br><br>
+                    <span class="text-bold" style="text-decoration: underline;">Drs. Ramli, M.Pd</span><br>
+                    NIP. 196611091996021002
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page">
+        <div class="text-bold mb-1">Nama Peserta Didik : <span id="mutasi-nama-keluar">...</span></div>
+        <div class="section-title" style="margin-bottom: 10px;">KETERANGAN PINDAH SEKOLAH</div>
+
+        <table class="table-bordered">
+            <thead>
+                <tr><th colspan="4" style="background-color: #f3f4f6;">KELUAR</th></tr>
+                <tr>
+                    <th style="width: 15%;">Tanggal</th>
+                    <th style="width: 20%;">Kelas yang Ditinggalkan</th>
+                    <th style="width: 30%;">Sebab-sebab Keluar atau Atas Permintaan</th>
+                    <th style="width: 35%;">Tanda Tangan Kepala Sekolah, Stempel Sekolah, dan Tanda Tangan Orang Tua/Wali</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height: 120px;">
+                    <td></td><td></td><td></td>
+                    <td style="position: relative;">
+                        Kepala Sekolah,<br><br><br>NIP.<br>Orang Tua/Wali,
+                    </td>
+                </tr>
+                <tr style="height: 120px;">
+                    <td></td><td></td><td></td>
+                    <td style="position: relative;">
+                        Kepala Sekolah,<br><br><br>NIP.<br>Orang Tua/Wali,
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page">
+        <div class="text-bold mb-1">Nama Peserta Didik : <span id="mutasi-nama-masuk">...</span></div>
+        <div class="section-title" style="margin-bottom: 10px;">KETERANGAN PINDAH SEKOLAH</div>
+
+        <table class="table-bordered">
+            <thead>
+                <tr><th colspan="3" style="background-color: #f3f4f6;">MASUK</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="width: 5%; text-align: center;">1.<br>2.<br>3.<br><br>4.<br><br>5.</td>
+                    <td style="width: 50%;">
+                        Nama Siswa<br>Nomor Induk<br>Nama Sekolah<br>Masuk di Sekolah ini:<br>
+                        a. Tanggal<br>b. Di Kelas<br>Tahun Ajaran
+                    </td>
+                    <td style="width: 45%;">
+                        <br><br><br><br>Kepala Sekolah,<br><br><br>NIP.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">1.<br>2.<br>3.<br><br>4.<br><br>5.</td>
+                    <td>
+                        Nama Siswa<br>Nomor Induk<br>Nama Sekolah<br>Masuk di Sekolah ini:<br>
+                        a. Tanggal<br>b. Di Kelas<br>Tahun Ajaran
+                    </td>
+                    <td>
+                        <br><br><br><br>Kepala Sekolah,<br><br><br>NIP.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js'
+
+        async function init() {
+            // Ambil ID siswa dari URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            if (!id) {
+                alert("ID Siswa tidak ditemukan di URL!");
+                return;
+            }
+
+            const { data: anggota, error } = await supabase
+                .from('anggota_kelas')
+                .select(`id, siswa(*)`)
+                .eq('id', id)
+                .single();
+
+            if (error || !anggota) {
+                alert("Gagal memuat data siswa!");
+                return;
+            }
+
+            const siswa = anggota.siswa;
+
+            document.getElementById('cover-nama-siswa').textContent = siswa.nama_lengkap || '-';
+            document.getElementById('cover-nisn').textContent = `${siswa.nisn || '-'} / -`;
+
+            document.getElementById('bio-nama').textContent = siswa.nama_lengkap || '-';
+            document.getElementById('bio-nisn').textContent = siswa.nisn || '-';
+            document.getElementById('bio-jk').textContent = siswa.jenis_kelamin === 'L' ? 'Laki-Laki' : (siswa.jenis_kelamin === 'P' ? 'Perempuan' : '-');
+            document.getElementById('bio-agama').textContent = siswa.agama || '-';
+            
+            document.getElementById('mutasi-nama-keluar').textContent = siswa.nama_lengkap || '-';
+            document.getElementById('mutasi-nama-masuk').textContent = siswa.nama_lengkap || '-';
+            
+            document.getElementById('bio-ttl').textContent = `${siswa.tempat_lahir || '-'}, ${siswa.tanggal_lahir || '-'}`;
+            document.getElementById('bio-status').textContent = siswa.status_keluarga || 'Anak Kandung';
+            document.getElementById('bio-anak-ke').textContent = siswa.anak_ke || '-';
+            document.getElementById('bio-alamat').textContent = siswa.alamat_siswa || '-';
+            document.getElementById('bio-telp').textContent = siswa.no_telp_siswa || '-';
+            document.getElementById('bio-sekolah-asal').textContent = siswa.sekolah_asal || '-';
+            document.getElementById('bio-ayah').textContent = siswa.nama_ayah || '-';
+            document.getElementById('bio-ibu').textContent = siswa.nama_ibu || '-';
+            document.getElementById('bio-alamat-ortu').textContent = siswa.alamat_ortu || '-';
+            document.getElementById('bio-telp-ortu').textContent = siswa.no_telp_ortu || '-';
+            document.getElementById('bio-kerja-ayah').textContent = siswa.pekerjaan_ayah || '-';
+            document.getElementById('bio-kerja-ibu').textContent = siswa.pekerjaan_ibu || '-';
+        }
+
+        init();
+    </script>
+</body>
+</html>
+

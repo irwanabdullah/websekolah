@@ -81,7 +81,7 @@
         <div class="sticky-timer d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
                 <i class="far fa-clock text-danger"></i>
-                <span class="fw-bold text-danger fs-5" id="timer">00:00</span>
+                <span class="fw-bold text-danger fs-5" id="timer">Loading...</span>
             </div>
             <span class="badge bg-primary px-3 py-2 rounded-pill">No. <span id="no-soal">1</span></span>
         </div>
@@ -119,19 +119,16 @@
 
     <script>
         // --- KONFIGURASI SUPABASE ---
-        // Ganti dengan URL dan KEY Supabase Anda yang benar dari file admin.html
         const SUPABASE_URL = 'https://mbkuwbcjniidcyinqwoe.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia3V3YmNqbmlpZGN5aW5xd29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMzYxOTYsImV4cCI6MjA4NjgxMjE5Nn0.56imEwwShJx8BXPM-MR4-OiHz-q-rQYrlXh0TcohX9Y';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = { user: null, mapel: null, soal: [], jawaban: {}, durasi: 0, timer: null };
+        let state = { user: null, mapel: null, soal: [], jawaban: {}, timerInterval: null };
         let currIdx = 0, violations = 0, navModal;
 
-        // --- AUTH & SESSION ---
+        // --- AUTH & INIT ---
         window.onload = () => {
-            // Inisialisasi Modal Bootstrap
             navModal = new bootstrap.Modal(document.getElementById('modalNav'));
-            
             const s = localStorage.getItem('siswa_session');
             if(s) { 
                 state.user = JSON.parse(s); 
@@ -142,8 +139,8 @@
         function togglePass() {
             const x = document.getElementById('password');
             const i = document.getElementById('eyeIcon');
-            if(x.type==='password'){ x.type='text'; i.className='fas fa-eye-slash text-primary'; }
-            else{ x.type='password'; i.className='fas fa-eye text-muted'; }
+            x.type = x.type==='password' ? 'text' : 'password';
+            i.className = x.type==='password' ? 'fas fa-eye text-muted' : 'fas fa-eye-slash text-primary';
         }
 
         document.getElementById('formLogin').addEventListener('submit', async(e)=>{
@@ -151,50 +148,42 @@
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             
-            // Login Logic
+            Swal.showLoading();
             const { data, error } = await db.from('users').select('*').eq('username', u).eq('password', p).maybeSingle();
             
-            if(error) {
-                console.error("DB Error:", error);
-                Swal.fire('Error', 'Masalah koneksi database', 'error');
-            } else if(data && data.role === 'siswa') {
+            if(error || !data || data.role !== 'siswa') {
+                Swal.fire('Gagal', 'Username/Password salah.', 'error');
+            } else {
                 state.user = data;
                 localStorage.setItem('siswa_session', JSON.stringify(data));
+                Swal.close();
                 enterDashboard();
-            } else {
-                Swal.fire('Gagal', 'Username/Password salah atau bukan akun siswa.', 'error');
             }
         });
+
+        function logout() { localStorage.clear(); location.reload(); }
 
         function enterDashboard() {
             document.getElementById('welcomeName').innerText = state.user.nama;
             switchView('view-dashboard');
             loadMapel();
         }
-        function logout() { localStorage.removeItem('siswa_session'); location.reload(); }
+
         function switchView(id) {
             ['view-login','view-dashboard','view-ujian'].forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         }
 
-        // --- LOAD MAPEL ---
+        // --- LOAD UJIAN & HISTORY ---
         async function loadMapel() {
             const list = document.getElementById('listMapel');
             list.innerHTML = '<div class="text-center w-100 p-4"><div class="spinner-border text-primary"></div></div>';
             
             try {
                 // 1. Ambil Ujian Aktif
-                const { data: exams, error: errExam } = await db.from('exams').select('*').eq('status', 'Aktif');
-                if(errExam) throw errExam;
-
-                // 2. Ambil Riwayat Pengerjaan Siswa Ini
-                const { data: results, error: errRes } = await db.from('results')
-                    .select('exam_id')
-                    .eq('username_siswa', state.user.username);
-                
-                if(errRes) throw errRes;
-
-                // Buat Set ID yang sudah selesai
+                const { data: exams } = await db.from('exams').select('*').eq('status', 'Aktif');
+                // 2. Ambil Riwayat Selesai
+                const { data: results } = await db.from('results').select('exam_id').eq('username_siswa', state.user.username);
                 const doneIds = new Set(results ? results.map(r => r.exam_id) : []);
 
                 list.innerHTML = '';
@@ -202,13 +191,22 @@
                     exams.forEach(m => {
                         const isDone = doneIds.has(m.id);
                         
-                        let actionBtn = '';
+                        // Cek apakah ada save-an lokal (Resume)
+                        const saveKey = `cbt_save_${state.user.username}_${m.id}`;
+                        const hasProgress = localStorage.getItem(saveKey);
+
+                        let btnHTML = '';
                         if (isDone) {
-                            actionBtn = `<button class="btn btn-secondary w-100 rounded-pill py-2" disabled style="opacity:0.7">
-                                <i class="fas fa-check-circle me-1"></i> SUDAH SELESAI
+                            btnHTML = `<button class="btn btn-secondary w-100 rounded-pill py-2" disabled style="opacity:0.7"><i class="fas fa-check-circle me-1"></i> SELESAI</button>`;
+                        } else if (hasProgress) {
+                            // TOMBOL RESUME
+                            btnHTML = `<button class="btn btn-warning text-white w-100 fw-bold rounded-pill py-2 shadow-sm" 
+                                onclick="resumeExam('${m.id}', '${m.nama}', ${m.acak_soal}, ${m.acak_opsi})">
+                                <i class="fas fa-play me-1"></i> LANJUTKAN
                             </button>`;
                         } else {
-                            actionBtn = `<button class="btn btn-primary w-100 fw-bold rounded-pill py-2 shadow-sm" 
+                            // TOMBOL BARU
+                            btnHTML = `<button class="btn btn-primary w-100 fw-bold rounded-pill py-2 shadow-sm" 
                                 onclick="askToken('${m.id}', '${m.nama}', ${m.durasi}, '${m.token}', ${m.acak_soal}, ${m.acak_opsi})">
                                 KERJAKAN <i class="fas fa-arrow-right ms-1"></i>
                             </button>`;
@@ -219,83 +217,132 @@
                             <div class="card card-custom p-4 h-100 border ${isDone ? 'bg-light' : ''}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <h5 class="fw-bold mb-1 text-dark">${m.nama}</h5>
-                                    ${isDone ? '<span class="badge bg-success">Done</span>' : '<span class="badge bg-danger">New</span>'}
+                                    ${isDone ? '<span class="badge bg-success">Selesai</span>' : (hasProgress ? '<span class="badge bg-warning">Berjalan</span>' : '<span class="badge bg-danger">Baru</span>')}
                                 </div>
-                                <p class="text-muted small mb-4 border-bottom pb-2">
-                                    <i class="far fa-clock me-1"></i> ${m.durasi} Menit
-                                </p>
-                                <div class="mt-auto">
-                                    ${actionBtn}
-                                </div>
+                                <p class="text-muted small mb-4 border-bottom pb-2"><i class="far fa-clock me-1"></i> ${m.durasi} Menit</p>
+                                <div class="mt-auto">${btnHTML}</div>
                             </div>
                         </div>`;
                     });
                 } else {
-                    list.innerHTML = '<div class="alert alert-info w-100 text-center">Belum ada ujian yang aktif.</div>';
+                    list.innerHTML = '<div class="alert alert-info w-100 text-center">Belum ada ujian aktif.</div>';
                 }
-            } catch (err) {
-                console.error(err);
-                list.innerHTML = '<div class="alert alert-danger">Gagal memuat data. Cek koneksi.</div>';
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function askToken(id, nama, durasi, tokenAsli, acakS, acakO) {
-            const { value: t } = await Swal.fire({ 
-                title: 'Masukkan Token', 
-                input: 'text', 
-                inputPlaceholder: 'Kode Token...',
-                confirmButtonText:'Mulai Ujian', 
-                showCancelButton:true 
-            });
-            
+            const { value: t } = await Swal.fire({ title: 'Masukkan Token', input: 'text', confirmButtonText:'Mulai', showCancelButton:true });
             if(t && t.toUpperCase().trim() === tokenAsli) {
-                startExam(id, nama, durasi, acakS, acakO);
-            } else if(t) {
-                Swal.fire('Token Salah', 'Silakan minta token ke pengawas.', 'error');
-            }
+                // Hapus data lama jika ada (bersih-bersih)
+                localStorage.removeItem(`cbt_save_${state.user.username}_${id}`);
+                localStorage.removeItem(`cbt_timer_${state.user.username}_${id}`);
+                startExam(id, nama, durasi, acakS, acakO, false);
+            } else if(t) { Swal.fire('Token Salah', '', 'error'); }
         }
 
-        async function startExam(id, nama, durasi, acakS, acakO) {
+        function resumeExam(id, nama, acakS, acakO) {
+            // Lanjut tanpa token, ambil durasi dari saved state nanti
+            startExam(id, nama, 0, acakS, acakO, true);
+        }
+
+        async function startExam(id, nama, durasiMenit, acakS, acakO, isResume) {
             Swal.fire({title: 'Memuat Soal...', didOpen: ()=>Swal.showLoading()});
-            const { data, error } = await db.from('questions').select('*').eq('exam_id', id);
             
-            if(error) {
-                Swal.fire('Error', 'Gagal ambil soal', 'error');
+            // Ambil Soal
+            const { data } = await db.from('questions').select('*').eq('exam_id', id);
+            
+            if(!data || data.length === 0) {
+                Swal.fire('Error', 'Soal kosong.', 'error');
                 return;
             }
 
-            if(data && data.length > 0) {
-                state.mapel = { id, nama, acakO };
-                state.soal = acakS ? data.sort(()=>Math.random()-0.5) : data;
-                state.jawaban = {};
-                state.durasi = durasi * 60;
-                
-                runTimer();
-                renderSoal(0);
-                startSecurity();
-                switchView('view-ujian');
-                Swal.close();
+            state.mapel = { id, nama, acakO };
+            
+            // Load Progress Jawaban
+            const saveKey = `cbt_save_${state.user.username}_${id}`;
+            const savedData = localStorage.getItem(saveKey);
+            
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                state.jawaban = parsed.jawaban || {};
+                // Jika resume, kita pakai urutan soal yang mungkin sudah diacak (tapi untuk simpel, kita acak ulang saja atau pakai default)
+                // Idealnya urutan acak juga disimpan, tapi di sini kita pakai acakS dari DB saja.
             } else {
-                Swal.fire('Kosong', 'Soal belum diinput oleh Admin.', 'warning');
+                state.jawaban = {};
             }
+
+            state.soal = acakS ? data.sort(()=>Math.random()-0.5) : data;
+            
+            // SETUP TIMER PERSISTENT
+            setupTimer(id, durasiMenit, isResume);
+            
+            renderSoal(0);
+            startSecurity();
+            switchView('view-ujian');
+            Swal.close();
         }
 
-        // --- RENDER SOAL ---
+        // --- TIMER SYSTEM (YANG PENTING) ---
+        function setupTimer(examId, durasiMenit, isResume) {
+            const timerKey = `cbt_timer_${state.user.username}_${examId}`;
+            const now = new Date().getTime();
+            let endTime;
+
+            if (isResume) {
+                // Ambil waktu selesai yang tersimpan
+                endTime = localStorage.getItem(timerKey);
+                // Jika corrupt/hilang, kasih default 1 menit untuk submit
+                if (!endTime) endTime = now + (1 * 60 * 1000); 
+            } else {
+                // Ujian baru: Set waktu selesai dari sekarang + durasi
+                endTime = now + (durasiMenit * 60 * 1000);
+                localStorage.setItem(timerKey, endTime);
+            }
+
+            // Jalankan Interval
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            
+            state.timerInterval = setInterval(() => {
+                const current = new Date().getTime();
+                const diff = parseInt(endTime) - current;
+
+                if (diff <= 0) {
+                    clearInterval(state.timerInterval);
+                    document.getElementById('timer').innerText = "00:00:00";
+                    Swal.fire({ icon:'warning', title:'Waktu Habis!', timer:2000, showConfirmButton:false }).then(() => submitExam(true));
+                    return;
+                }
+
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('timer').innerText = `${h}:${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
+                
+                // Warning visual
+                const el = document.getElementById('timer');
+                if(diff < 300000) el.classList.add('blink'); // 5 menit terakhir
+            }, 1000);
+        }
+
+        // --- RENDER & ANSWER ---
         function renderSoal(idx) {
             currIdx = idx;
             const s = state.soal[idx];
             document.getElementById('no-soal').innerText = idx + 1;
             document.getElementById('soal-content').innerHTML = s.pertanyaan;
             
+            // Render Opsi
             let ops = [{k:'A',v:s.opsi_a},{k:'B',v:s.opsi_b},{k:'C',v:s.opsi_c},{k:'D',v:s.opsi_d}];
+            // Note: Jika acak opsi aktif, setiap render akan mengacak ulang. 
+            // Agar konsisten saat refresh, idealnya urutan opsi juga disimpan. 
+            // Tapi untuk versi ringan ini, acak ulang tidak fatal asalkan kontennya sama.
             if(state.mapel.acakO) ops = ops.sort(()=>Math.random()-0.5);
 
             const c = document.getElementById('opsi-container'); c.innerHTML = '';
             ops.forEach(o => {
-                const act = state.jawaban[s.id] === o.k ? 'active' : '';
-                c.innerHTML += `<button class="opsi-btn ${act}" onclick="ans('${s.id}','${o.k}',this)">
-                    ${o.v}
-                </button>`;
+                const isSelected = state.jawaban[s.id] === o.k;
+                c.innerHTML += `<button class="opsi-btn ${isSelected?'active':''}" onclick="ans('${s.id}','${o.k}',this)">${o.v}</button>`;
             });
         }
 
@@ -303,6 +350,10 @@
             state.jawaban[qid] = key; 
             document.querySelectorAll('.opsi-btn').forEach(b => b.classList.remove('active')); 
             el.classList.add('active'); 
+            
+            // --- AUTO SAVE ---
+            const saveKey = `cbt_save_${state.user.username}_${state.mapel.id}`;
+            localStorage.setItem(saveKey, JSON.stringify({ jawaban: state.jawaban }));
         }
 
         function nav(dir) { 
@@ -313,14 +364,15 @@
         function openNavModal() {
             const g = document.getElementById('grid-nomor'); g.innerHTML='';
             state.soal.forEach((s, i) => {
-                const cls = state.jawaban[s.id] ? 'btn-nav-number filled' : 'btn-outline-secondary btn-nav-number';
+                const filled = state.jawaban[s.id];
+                const cls = filled ? 'btn-nav-number filled' : 'btn-outline-secondary btn-nav-number';
                 g.innerHTML += `<button class="btn ${cls}" onclick="jump(${i})">${i+1}</button>`;
             });
             navModal.show();
         }
         function jump(i) { navModal.hide(); renderSoal(i); }
 
-        // --- SECURITY SYSTEM ---
+        // --- SECURITY ---
         function startSecurity() {
             violations = 0;
             document.addEventListener('visibilitychange', checkSec);
@@ -339,50 +391,32 @@
                 } else {
                     Swal.fire({
                         title: 'PERINGATAN!',
-                        html: `Dilarang pindah tab/aplikasi!<br>Pelanggaran: <b>${violations}/3</b>.<br>Jika mencapai 3x, ujian otomatis dikirim.`,
+                        html: `Dilarang pindah tab!<br>Pelanggaran: <b>${violations}/3</b>.<br>Ujian akan otomatis dikirim jika melanggar lagi.`,
                         icon: 'warning',
-                        confirmButtonText: 'Lanjut Ujian',
+                        confirmButtonText: 'Kembali Ujian',
                         allowOutsideClick: false
                     });
                 }
             }
         }
 
-        function runTimer() {
-            state.timer = setInterval(() => {
-                state.durasi--;
-                const m = Math.floor(state.durasi/60); const s = state.durasi%60;
-                document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
-                if(state.durasi <= 0) { clearInterval(state.timer); submitExam(true); }
-            }, 1000);
-        }
-
+        // --- SUBMIT ---
         function konfirmasiSelesai() {
             const total = state.soal.length;
             const filled = Object.keys(state.jawaban).length;
-            
             Swal.fire({ 
                 title: 'Kirim Jawaban?', 
-                html: `Anda sudah menjawab <b>${filled}</b> dari <b>${total}</b> soal.<br>Yakin ingin mengirim?`, 
-                icon: 'question', 
-                showCancelButton:true, 
-                confirmButtonText:'Ya, Kirim',
-                confirmButtonColor: '#198754'
+                html: `Terjawab: <b>${filled}</b> / <b>${total}</b>.<br>Yakin ingin mengakhiri ujian?`, 
+                icon: 'question', showCancelButton:true, confirmButtonText:'Ya, Kirim', confirmButtonColor: '#198754'
             }).then(r => { if(r.isConfirmed) submitExam(false); });
         }
 
-        // --- SUBMIT LOGIC ---
         async function submitExam(force) {
-            clearInterval(state.timer);
+            clearInterval(state.timerInterval);
             stopSecurity();
             if(navModal) navModal.hide();
             
-            Swal.fire({
-                title: force ? 'WAKTU HABIS / DISKUALIFIKASI' : 'Mengirim Jawaban...',
-                text: 'Mohon tunggu sebentar...',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
+            Swal.fire({ title: force ? 'WAKTU HABIS!' : 'Mengirim...', text: 'Mohon tunggu...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             const payload = {
                 p_username_siswa: state.user.username,
@@ -395,74 +429,37 @@
             try {
                 const { data, error } = await db.rpc('submit_ujian', payload);
 
-                if(error) {
-                    console.error("RPC Error:", error);
-                    throw error;
-                }
+                if(error) throw error;
+
+                // BERSIHKAN LOCALSTORAGE
+                localStorage.removeItem(`cbt_save_${state.user.username}_${state.mapel.id}`);
+                localStorage.removeItem(`cbt_timer_${state.user.username}_${state.mapel.id}`);
 
                 if(data.status === 'error') {
                     Swal.fire('Info', data.message, 'warning').then(() => location.reload());
                 } else {
                     Swal.fire({
-                        title: 'UJIAN SELESAI!',
-                        html: `Nilai Anda:<br><h1 class="text-primary display-3 fw-bold">${Math.round(data.skor)}</h1>`,
+                        title: 'SELESAI!',
+                        html: `Skor Anda:<br><h1 class="text-primary display-3 fw-bold">${Math.round(data.skor)}</h1>`,
                         icon: 'success',
                         allowOutsideClick: false,
                         confirmButtonText: 'Kembali ke Dashboard'
-                    }).then(() => {
-                        location.reload(); 
-                    });
+                    }).then(() => location.reload());
                 }
             } catch (err) {
-                Swal.fire({
-                    title: 'Gagal Mengirim',
-                    text: 'Koneksi terputus atau terjadi kesalahan server. Coba kirim lagi?',
-                    icon: 'error',
-                    showCancelButton: true,
-                    confirmButtonText: 'Coba Lagi'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        submitExam(force);
-                    }
-                });
+                console.error(err);
+                Swal.fire({ title: 'Gagal', text: 'Koneksi error. Coba lagi?', icon: 'error', showCancelButton: true, confirmButtonText: 'Coba Lagi' })
+                .then((r) => { if (r.isConfirmed) submitExam(force); });
             }
         }
     </script>
-	
-	<script>
-	// Disable klik kanan
-	document.addEventListener('contextmenu', function (e) {
-		e.preventDefault();
-	});
-
-	// Disable shortcut keyboard tertentu
-	document.addEventListener('keydown', function (e) {
-
-		// F12
-		if (e.key === "F12") {
-			e.preventDefault();
-		}
-
-		// Ctrl+Shift+I
-		if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-			e.preventDefault();
-		}
-
-		// Ctrl+Shift+J
-		if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-			e.preventDefault();
-		}
-
-		// Ctrl+U (View Source)
-		if (e.ctrlKey && e.key === 'u') {
-			e.preventDefault();
-		}
-
-		// Ctrl+Shift+C (Inspect Element)
-		if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-			e.preventDefault();
-		}
-	});
-</script>
+    
+    <script>
+    // Security Tambahan
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if(e.key==="F12" || (e.ctrlKey && (e.key==='u'||e.key==='U'))) e.preventDefault();
+    });
+    </script>
 </body>
 </html>

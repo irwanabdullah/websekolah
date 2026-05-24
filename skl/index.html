@@ -54,6 +54,11 @@
             border: 3px solid #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
+        .footer-custom {
+            padding: 25px 0;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
         #printArea { 
             display: none; 
         }
@@ -191,6 +196,13 @@
             </div>
         </div>
     </div>
+    
+    <footer class="footer-custom mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; <span id="tahunDinamis"></span> UPT SPF SMP Negeri 13 Makassar. Hak Cipta Dilindungi.</p>
+            <small class="text-muted">Sistem Informasi Kelulusan Siswa</small>
+        </div>
+    </footer>
 
     <div id="printArea">
         <div class="kop-surat">
@@ -250,6 +262,9 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdDn3PyDC-wuoVHxPXdWMIbdTv0gFbQ7esBzP0z4D4ajpQfEu-LFpIyk087Cm31Wq0Bw/exec'; 
+
+        // Set Tahun Dinamis pada Footer
+        document.getElementById('tahunDinamis').innerText = new Date().getFullYear();
 
         document.getElementById('nisnInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') checkKelulusan();

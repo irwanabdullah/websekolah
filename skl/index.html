@@ -1,1 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengumuman Kelulusan & Cetak SKL</title>
+    <!-- Bootstrap 5 & Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        /* ==========================================================================
+           1. TAMPILAN LAYAR (DASHBOARD PORTAL SISWA)
+           ========================================================================== */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #eef2f7; 
+        }
+        .hero-section { 
+            background: linear-gradient(120deg, #1e3c72 0%, #2a5298 100%); 
+            color: white; 
+            padding: 50px 0; 
+            border-radius: 0 0 40px 40px; 
+            margin-bottom: 40px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
+        .card-custom { 
+            border: none; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+        }
+        .status-lulus { 
+            background-color: #2ec4b6; 
+            color: white; 
+            padding: 10px 25px; 
+            border-radius: 30px; 
+            font-weight: bold; 
+            display: inline-block;
+        }
+        .status-gagal { 
+            background-color: #e71d36; 
+            color: white; 
+            padding: 10px 25px; 
+            border-radius: 30px; 
+            font-weight: bold; 
+            display: inline-block;
+        }
+        .foto-siswa {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        #printArea { 
+            display: none; 
+        }
 
+        /* ==========================================================================
+           2. SETTING KHUSUS HALAMAN CETAK (PRINT OUT SKL)
+           ========================================================================== */
+        @media print {
+            body *, html * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { 
+                display: block; 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                font-family: 'Times New Roman', Times, serif; 
+                color: black; 
+                background: white;
+                padding: 20px;
+            }
+            
+            .kop-surat { 
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between; 
+                border-bottom: 4px double black; 
+                padding-bottom: 10px; 
+                margin-bottom: 25px; 
+            }
+            .kop-surat img { width: 85px; height: auto; }
+            .kop-teks { text-align: center; flex: 1; padding: 0 15px; }
+            .kop-teks h3 { margin: 0; font-weight: bold; text-transform: uppercase; font-size: 14pt; line-height: 1.2; }
+            .kop-teks h2 { margin: 3px 0; font-weight: bold; font-size: 16pt; text-transform: uppercase; }
+            .kop-teks p { margin: 0; font-size: 9pt; font-style: normal; line-height: 1.3; }
+            
+            .judul-surat { text-align: center; margin-bottom: 25px; }
+            .judul-surat h4 { margin: 0; font-weight: bold; text-decoration: underline; font-size: 14pt; text-transform: uppercase; }
+            .judul-surat p { margin: 5px 0 0 0; font-size: 11pt; }
+            
+            .isi-surat { font-size: 11pt; line-height: 1.5; text-align: justify; }
+            
+            /* Kontainer untuk foto dan biodata agar rapi */
+            .biodata-container {
+                display: flex;
+                align-items: flex-start;
+                margin: 15px 0;
+            }
+
+            .tabel-biodata { width: 100%; }
+            .tabel-biodata td { padding: 4px; vertical-align: top; }
+            
+            /* Foto SKL - Memastikan tercetak */
+            #printFoto {
+                display: block !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                width: 3cm; 
+                height: 4cm; 
+                border: 1px solid #000; 
+                object-fit: cover; 
+                margin-right: 25px;
+            }
+
+            .status-box { 
+                border: 3px solid black; 
+                width: 45%; 
+                margin: 20px auto; 
+                text-align: center; 
+                padding: 10px; 
+                font-weight: bold; 
+                font-size: 16pt; 
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            .ttd-container { width: 100%; margin-top: 30px; display: flex; justify-content: flex-end; }
+            .ttd-area { width: 45%; text-align: center; }
+            .ttd-area p { margin: 1px 0; font-size: 11pt; }
+            .qr-barcode { margin: 10px auto; width: 85px; height: 85px; display: block; }
+            .qr-barcode img { width: 100%; height: 100%; object-fit: contain; }
+            
+            @page { size: A4; margin: 2cm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="fw-800">Portal Kelulusan Siswa</h1>
+            <p class="lead">UPT SPF SMP Negeri 13 Makassar</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card card-custom p-4 mb-4">
+                    <h5 class="card-title fw-bold mb-3"><i class="bi bi-search me-2"></i>Cek Status Kelulusan</h5>
+                    <div class="input-group mb-3">
+                        <input type="text" id="nisnInput" class="form-control form-control-lg" placeholder="Masukkan NISN Siswa...">
+                        <button class="btn btn-primary btn-lg" type="button" id="btnCek" onclick="checkKelulusan()">Periksa</button>
+                    </div>
+                </div>
+
+                <div id="loading" class="text-center d-none my-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Sedang menarik data dari server...</p>
+                </div>
+
+                <div id="resultCard" class="card card-custom p-4 d-none">
+                    <div class="text-center mb-4">
+                        <img id="resFoto" src="" alt="Foto Siswa" class="foto-siswa mb-3 d-none">
+                        <h4 id="resNama" class="fw-bold text-uppercase m-0">NAMA SISWA</h4>
+                        <p id="resNisn" class="text-muted m-0">NISN: 00000000</p>
+                    </div>
+                    <hr>
+                    <div class="row text-center my-3">
+                        <div class="col-6 border-end">
+                            <small class="text-muted d-block mb-1">PREDIKAT AKHIR</small>
+                            <h3 id="resNilai" class="fw-bold text-primary m-0">00.00</h3>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block mb-1">STATUS</small>
+                            <div id="resStatus">
+                                <span class="status-lulus">LULUS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-success btn-lg" onclick="window.print()"><i class="bi bi-printer me-2"></i>CETAK SKL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="printArea">
+        <div class="kop-surat">
+            <img src="https://i.ibb.co.com/zzfknCZ/kota-makassar.png" alt="Logo Kota Makassar"> 
+            <div class="kop-teks">
+                <h3>PEMERINTAH KOTA MAKASSAR</h3>
+                <h2>UPT SPF SMP NEGERI 13 MAKASSAR</h2>
+                <p>Alamat: Jl. Tamalate VI No. 2, Perumnas Tamalate Kec. Rappocini</p>
+                <p>Website: smpn13makassar.my.id | Email: smpn13makassar@yahoo.co.id | NPSN : 40307334</p>
+            </div>
+            <img src="https://i.ibb.co.com/SXV3cpZC/Logo-SMPN13.png" alt="Logo SMPN 13">
+        </div>
+
+        <div class="judul-surat">
+            <h4>SURAT KETERANGAN LULUS</h4>
+            <p>Nomor: 422/209/UPT SPF SMPN13/SKL/V/2026</p>
+        </div>
+
+        <div class="isi-surat">
+            <p>Yang bertanda tangan di bawah ini, Kepala UPT SPF SMP Negeri 13 Makassar menerangkan bahwa:</p>
+            
+            <div class="biodata-container">
+                <!-- Foto Cetak SKL -->
+                <img id="printFoto" src="" alt="Foto Siswa" style="display: none;">
+                
+                <table class="tabel-biodata">
+                    <tr><td style="width: 30%;">Nama Lengkap</td><td style="width: 3%;">:</td><td id="printNama" style="font-weight: bold;">-</td></tr>
+                    <tr><td>Tempat & Tgl. Lahir</td><td>:</td><td id="printTTL">-</td></tr>
+                    <tr><td>NISN </td><td>:</td><td id="printNisn">-</td></tr>
+                    <tr><td>NIK</td><td>:</td><td id="printNik">-</td></tr>
+                    <tr><td>Predikat Akhir</td><td>:</td><td id="printNilai" style="font-weight: bold;">-</td></tr>
+                </table>
+            </div>
+
+            <p style="margin-top: 15px;">Berdasarkan Laporan Hasil Belajar Siswa dan rapat Dewan Guru tentang Kelulusan Siswa pada tanggal 25 Mei 2025 di UPT SPF SMP Negeri 13 Makassar Tahun Ajaran 2025/2026, yang bersangkutan dinyatakan:</p>
+            
+            <div id="printStatusBox" class="status-box">L U L U S</div>
+
+            <p>Demikian Surat Keterangan Lulus ini diberikan kepada yang bersangkutan untuk dapat dipergunakan sebagaimana mestinya.</p>
+            
+            <div class="ttd-container">
+                <div class="ttd-area">
+                    <p style="text-align: left; padding-left: 25px;">Ditetapkan di : Makassar</p>
+                    <p style="text-align: left; padding-left: 25px;">Pada Tanggal : 25 Mei 2026</p>
+                    <p style="text-align: left; padding-left: 25px; margin-bottom: 5px;">Kepala Sekolah,</p>
+                    
+                    <div class="qr-barcode">
+                        <img id="printQRCode" src="" alt="Validasi QR Code">
+                    </div>
+                    
+                    <p style="font-weight: bold; text-decoration: underline; margin-top: 5px;">Drs. Ramli, M.Pd.</p>
+                    <p>NIP. 196611091996021002</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdDn3PyDC-wuoVHxPXdWMIbdTv0gFbQ7esBzP0z4D4ajpQfEu-LFpIyk087Cm31Wq0Bw/exec'; 
+
+        document.getElementById('nisnInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkKelulusan();
+        });
+
+        function checkKelulusan() {
+            const nisn = document.getElementById('nisnInput').value.trim();
+            if (!nisn) { alert('Silakan masukkan NISN Anda terlebih dahulu.'); return; }
+
+            document.getElementById('loading').classList.remove('d-none');
+            document.getElementById('resultCard').classList.add('d-none');
+
+            fetch(`${SCRIPT_URL}?action=login_siswa&nisn=${nisn}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').classList.add('d-none');
+                    if (data.status === 'error') {
+                        alert(data.message);
+                    } else {
+                        // Telah diperbaiki untuk mengambil data.data
+                        renderData(data.data); 
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loading').classList.add('d-none');
+                    console.error('Error:', error);
+                    alert('Terjadi kegagalan koneksi data ke server.');
+                });
+        }
+
+        function renderData(data) {
+            document.getElementById('resultCard').classList.remove('d-none');
+            
+            document.getElementById('resNama').innerText = data.Nama.toUpperCase();
+            document.getElementById('resNisn').innerText = 'NISN: ' + data.NISN;
+            document.getElementById('resNilai').innerText = data['Nilai Akhir'];
+            
+            // --- FOTO DASHBOARD & CETAK SKL ---
+            const imgEl = document.getElementById('resFoto');
+            const printImgEl = document.getElementById('printFoto');
+            
+            if(data['Link Foto']) {
+                const fotoUrl = getDirectImage(data['Link Foto']);
+                // Tampilkan di Dashboard
+                imgEl.src = fotoUrl;
+                imgEl.classList.remove('d-none');
+                
+                // Tampilkan di SKL (Cetak)
+                printImgEl.src = fotoUrl;
+                printImgEl.style.display = 'block';
+            } else {
+                // Sembunyikan jika tidak ada
+                imgEl.classList.add('d-none');
+                printImgEl.style.display = 'none';
+            }
+            
+            const statusEl = document.getElementById('resStatus');
+            const isLulus = (data['Status Lulus'] || '').toUpperCase().includes('LULUS');
+            let statusTextFix = 'TIDAK LULUS';
+            
+            if (isLulus && !(data['Status Lulus'] || '').toUpperCase().includes('TIDAK')) {
+                statusEl.innerHTML = '<span class="status-lulus">LULUS</span>';
+                document.getElementById('printStatusBox').innerText = "L U L U S";
+                statusTextFix = 'LULUS';
+            } else {
+                statusEl.innerHTML = '<span class="status-gagal">TIDAK LULUS</span>';
+                document.getElementById('printStatusBox').innerText = "TIDAK LULUS";
+            }
+
+            // --- ISI DATA TEXT SKL ---
+            document.getElementById('printNama').innerText = data.Nama.toUpperCase();
+            const ttl = (data['Tempat Lahir'] || '') + ', ' + (data['Tanggal Lahir'] || '');
+            document.getElementById('printTTL').innerText = ttl;
+            document.getElementById('printNisn').innerText = data.NISN;
+            document.getElementById('printNik').innerText = data.NIK || '-';
+            document.getElementById('printNilai').innerText = data['Nilai Akhir'];
+
+            // --- QR CODE DINAMIS ---
+            // --- QR CODE DINAMIS (DIPERBAIKI) ---
+            const currentPortalUrl = window.location.href.split('?')[0]; 
+            
+            // Merapikan format teks dan baris baru agar mudah dibaca HP
+            const qrTextPayload = "VALIDASI DIGITAL SKL\n" +
+                                  "=========================\n" +
+                                  "Instansi: SMPN 13 MAKASSAR\n" +
+                                  "Nama: " + data.Nama.toUpperCase() + "\n" +
+                                  "NISN: " + data.NISN + "\n" +
+                                  "Nilai Akhir: " + data['Nilai Akhir'] + "\n" +
+                                  "Status: " + statusTextFix + "\n" +
+                                  "=========================\n" +
+                                  "Dokumen Sah & Terverifikasi.";
+            
+            // PERBAIKAN PENTING: Memperbesar resolusi QR ke 400x400 agar sangat tajam!
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(qrTextPayload)}`;
+            
+            document.getElementById('printQRCode').src = qrApiUrl;
+        }
+
+        // Fungsi Penarik Gambar yang Kuat
+        function getDirectImage(url) {
+            if(!url) return '';
+            let regExp = /[-\w]{25,}/;
+            let match = url.match(regExp);
+            if (match && match[0]) {
+                return 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w500';
+            }
+            return url;
+        }
+    </script>
+</body>
+</html>

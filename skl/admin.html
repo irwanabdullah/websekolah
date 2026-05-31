@@ -3,277 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Panel Kelulusan</title>
-    
+    <title>Admin Kelulusan - SMPN 13 Makassar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --bg-color: #f3f6f9;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-color);
-            color: #333;
-        }
-
-        /* --- LOGIN STYLES --- */
-        #adminLogin {
-            height: 100vh;
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-header i {
-            font-size: 3rem;
-            color: var(--primary-color);
-            background: #eef2ff;
-            padding: 15px;
-            border-radius: 50%;
-            margin-bottom: 15px;
-            display: inline-block;
-        }
-
-        /* --- DASHBOARD STYLES --- */
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
-            padding: 15px 0;
-        }
-
-        .stat-card {
-            border: none;
-            border-radius: 15px;
-            background: white;
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-        }
-
-        .icon-blue { background: #e0e7ff; color: #4361ee; }
-        .icon-green { background: #d1fae5; color: #10b981; }
-        .icon-red { background: #fee2e2; color: #ef4444; }
-
-        .main-card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .main-card .card-header {
-            background: white;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 20px 25px;
-        }
-
-        .table thead th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            color: #6c757d;
-            border-bottom: none;
-        }
-
-        .table tbody td {
-            vertical-align: middle;
-            font-size: 0.95rem;
-        }
-
-        .badge-status {
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .status-lulus { background-color: #d1fae5; color: #065f46; }
-        .status-gagal { background-color: #fee2e2; color: #991b1b; }
-        .status-tunda { background-color: #fef3c7; color: #92400e; }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(255,255,255,0.8);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7fb; }
+        .navbar-custom { background-color: #1a237e; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .stat-card { border-radius: 15px; padding: 20px; color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .bg-gradient-primary { background: linear-gradient(45deg, #1e88e5, #1565c0); }
+        .bg-gradient-success { background: linear-gradient(45deg, #43a047, #2e7d32); }
+        .bg-gradient-danger { background: linear-gradient(45deg, #e53935, #c62828); }
+        
+        .main-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .table-custom th { background-color: #f8f9fa; color: #333; font-weight: 600; }
+        .foto-thumb { width: 40px; height: 50px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid #ddd;}
+        
+        /* Overlay Login */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 35, 126, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-        <p class="mt-3 fw-bold text-primary">Memproses Data...</p>
-    </div>
-
-    <div id="adminLogin">
-        <div class="login-card">
-            <div class="login-header">
-                <i class="bi bi-shield-lock-fill"></i>
-                <h4 class="fw-bold">Admin Portal</h4>
-                <p class="text-muted small">Silakan login untuk mengelola data</p>
-            </div>
-            <div class="mb-4">
-                <label class="form-label fw-bold small text-uppercase text-muted">Password Admin</label>
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-key"></i></span>
-                    <input type="password" id="passwordInput" class="form-control bg-light border-start-0" placeholder="••••••••">
-                </div>
-            </div>
-            <button onclick="checkAdmin()" class="btn btn-primary w-100 btn-lg fw-bold shadow-sm">MASUK DASHBOARD</button>
+    <div id="loginOverlay">
+        <div class="login-box shadow-lg">
+            <i class="fa-solid fa-lock text-primary mb-3" style="font-size: 3rem;"></i>
+            <h4 class="fw-bold mb-4">Login Admin Panel</h4>
+            <input type="password" id="adminPass" class="form-control form-control-lg mb-3" placeholder="Masukkan Password...">
+            <button class="btn btn-primary w-100 py-2" onclick="cekLogin()">Masuk Sistem</button>
+            <p class="text-muted small mt-3">*Default: admin123</p>
         </div>
     </div>
 
-    <div id="adminDashboard" class="d-none">
+    <nav class="navbar navbar-dark navbar-custom mb-4 py-3">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand fw-bold"><i class="fa-solid fa-shield-halved me-2"></i>Admin Dashboard Kelulusan (Sheet2)</span>
+            <button class="btn btn-light btn-sm fw-bold" onclick="window.location.reload()"><i class="fa-solid fa-rotate me-1"></i>Refresh Data</button>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 pb-5">
         
-        <nav class="navbar navbar-expand-lg fixed-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold text-primary" href="#">
-                    <i class="bi bi-mortarboard-fill me-2"></i>Panel Kelulusan
-                </a>
-                <div class="d-flex align-items-center">
-                    <span class="me-3 text-muted small d-none d-md-block">Administrator</span>
-                    <button onclick="logout()" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                        <i class="bi bi-box-arrow-right me-1"></i> Logout
-                    </button>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stat-card bg-gradient-primary">
+                    <h6 class="text-uppercase mb-2 opacity-75">Total Siswa</h6>
+                    <h2 class="fw-bold mb-0" id="countTotal">0</h2>
                 </div>
             </div>
-        </nav>
-
-        <div class="container" style="margin-top: 100px; margin-bottom: 50px;">
-            
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="stat-card">
-                        <div class="stat-icon icon-blue"><i class="bi bi-people-fill"></i></div>
-                        <h6 class="text-muted mb-1">Total Siswa</h6>
-                        <h2 class="fw-bold mb-0" id="countTotal">0</h2>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-card">
-                        <div class="stat-icon icon-green"><i class="bi bi-check-circle-fill"></i></div>
-                        <h6 class="text-muted mb-1">Lulus</h6>
-                        <h2 class="fw-bold mb-0" id="countLulus">0</h2>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stat-card">
-                        <div class="stat-icon icon-red"><i class="bi bi-x-circle-fill"></i></div>
-                        <h6 class="text-muted mb-1">Tidak Lulus / Tunda</h6>
-                        <h2 class="fw-bold mb-0" id="countGagal">0</h2>
-                    </div>
+            <div class="col-md-4">
+                <div class="stat-card bg-gradient-success">
+                    <h6 class="text-uppercase mb-2 opacity-75">Lulus</h6>
+                    <h2 class="fw-bold mb-0" id="countLulus">0</h2>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="stat-card bg-gradient-danger">
+                    <h6 class="text-uppercase mb-2 opacity-75">Tidak Lulus / Tunda</h6>
+                    <h2 class="fw-bold mb-0" id="countGagal">0</h2>
+                </div>
+            </div>
+        </div>
 
-            <div class="card main-card">
-                <div class="card-header d-flex justify-content-between align-items-center bg-white">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Data Kelulusan Siswa</h5>
-                    <button onclick="loadData()" class="btn btn-primary btn-sm rounded-pill px-3">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
-                    </button>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive p-3">
-                        <table id="siswaTable" class="table table-hover align-middle" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>NISN</th>
-                                    <th>Nama Siswa</th>
-                                    <th>Nilai Akhir</th>
-                                    <th>Status</th>
-                                    <th class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
+        <div class="main-card">
+            <h5 class="fw-bold mb-4"><i class="fa-solid fa-users me-2 text-primary"></i>Data Master Siswa</h5>
+            <div class="table-responsive">
+                <table id="tabelSiswa" class="table table-hover table-custom w-100">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NISN</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
+                            <th>Nilai</th>
+                            <th>Predikat</th>
+                            <th>Status</th>
+                            <th>Foto</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodySiswa"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Update Data Siswa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="modalEdit" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Edit Data Siswa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body pt-4">
-                    <form id="editForm">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">NISN</label>
-                                <input type="text" id="editNisn" class="form-control bg-light" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Nama</label>
-                                <input type="text" id="editNama" class="form-control bg-light" readonly>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-bold">Status Kelulusan</label>
-                                <select id="editStatus" class="form-select form-select-lg">
-                                    <option value="LULUS">LULUS</option>
-                                    <option value="TIDAK LULUS">TIDAK LULUS</option>
-                                    <option value="DITUNDA">DITUNDA</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-bold">Nilai Akhir</label>
-                                <input type="number" id="editNilai" class="form-control form-control-lg" placeholder="Contoh: 85.50">
-                            </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editNisn">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Nama Siswa</label>
+                        <input type="text" id="editNama" class="form-control fw-bold" readonly>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Nilai Akhir</label>
+                            <input type="text" id="editNilai" class="form-control">
                         </div>
-                    </form>
+                        <div class="col-6">
+                            <label class="form-label">Predikat</label>
+                            <input type="text" id="editPredikat" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status Kelulusan</label>
+                        <select id="editStatus" class="form-select">
+                            <option value="LULUS">LULUS</option>
+                            <option value="TIDAK LULUS">TIDAK LULUS</option>
+                            <option value="DITUNDA">DITUNDA</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" onclick="saveData()" class="btn btn-primary rounded-pill px-4">Simpan Perubahan</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary fw-bold" onclick="simpanEdit()">Simpan Perubahan</button>
                 </div>
             </div>
         </div>
@@ -283,197 +136,120 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    
     <script>
-        // --- KONFIGURASI ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdDn3PyDC-wuoVHxPXdWMIbdTv0gFbQ7esBzP0z4D4ajpQfEu-LFpIyk087Cm31Wq0Bw/exec'; 
+        // GANTI DENGAN URL WEB APP ANDA
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztlAmARFfv_e3mrAxkrRqX9Lk2Uz6AFakTaFyR3X_TRiZkTh-RB24sCtBuOSYlQZNfIw/exec'; 
+        let dataTableSiswa = null;
 
-        // Fungsi Loading UI
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        // Login Logic
-        function checkAdmin() {
-            const pass = document.getElementById('passwordInput').value;
-            if (pass === "admin123") {
-                // Animasi Transisi
-                document.getElementById('adminLogin').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('adminLogin').classList.add('d-none');
-                    document.getElementById('adminDashboard').classList.remove('d-none');
-                    loadData();
-                }, 500);
+        // Login Sederhana
+        function cekLogin() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === 'admin123') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                loadData();
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Akses Ditolak',
-                    text: 'Password yang Anda masukkan salah.',
-                    confirmButtonColor: '#4361ee'
-                });
+                Swal.fire('Akses Ditolak', 'Password Salah!', 'error');
             }
         }
 
-        function logout() {
-            Swal.fire({
-                title: 'Keluar?',
-                text: "Anda harus login kembali untuk mengakses halaman ini.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#4361ee',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Logout'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    location.reload();
-                }
-            })
-        }
-
-        // Load Data Logic
-        async function loadData() {
-            showLoading(true);
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=get_all`);
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    updateTable(result.data);
-                    updateStats(result.data);
-                } else {
-                    Swal.fire('Error', 'Gagal memuat data dari server.', 'error');
-                }
-            } catch (e) {
-                console.error(e);
-                Swal.fire('Koneksi Error', 'Pastikan URL Script sudah benar.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function updateStats(data) {
-            const total = data.length;
-            const lulus = data.filter(s => (s['Status Lulus'] || '').toUpperCase() === 'LULUS').length;
-            const gagal = total - lulus;
-
-            // Animasi Counter (Opsional, simpel saja)
-            document.getElementById('countTotal').innerText = total;
-            document.getElementById('countLulus').innerText = lulus;
-            document.getElementById('countGagal').innerText = gagal;
-        }
-
-        function updateTable(data) {
-            // Hancurkan DataTable lama jika ada
-            if ($.fn.DataTable.isDataTable('#siswaTable')) {
-                $('#siswaTable').DataTable().destroy();
-            }
-
-            const tbody = document.querySelector('#siswaTable tbody');
-            tbody.innerHTML = '';
+        // Ambil Data dari API
+        function loadData() {
+            Swal.fire({ title: 'Menarik Data...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             
-            data.forEach(siswa => {
-                const status = (siswa['Status Lulus'] || 'DITUNDA').toUpperCase();
-                let badgeClass = 'status-tunda';
-                if(status === 'LULUS') badgeClass = 'status-lulus';
-                if(status.includes('TIDAK')) badgeClass = 'status-gagal';
-
-                const tr = `
-                    <tr>
-                        <td class="fw-bold text-muted">${siswa.NISN}</td>
-                        <td class="fw-semibold">${siswa.Nama}</td>
-                        <td>${siswa['Nilai Akhir'] || '-'}</td>
-                        <td><span class="badge-status ${badgeClass}">${status}</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-light border text-primary" 
-                                onclick="openEdit('${siswa.NISN}', '${siswa.Nama}', '${status}', '${siswa['Nilai Akhir']}')">
-                                <i class="bi bi-pencil-fill"></i> Edit
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += tr;
-            });
-
-            // Re-init DataTable dengan bahasa Indonesia
-            $('#siswaTable').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
-                },
-                pageLength: 10,
-                lengthMenu: [5, 10, 25, 50]
-            });
+            fetch(`${SCRIPT_URL}?action=get_all`)
+                .then(res => res.json())
+                .then(res => {
+                    Swal.close();
+                    if(res.status === 'success') renderTable(res.data);
+                    else Swal.fire('Error', res.message, 'error');
+                }).catch(err => {
+                    Swal.fire('Error', 'Gagal terhubung ke database.', 'error');
+                });
         }
 
-        // Edit Logic
-        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        // Render Table & Statistik
+        function renderTable(data) {
+            if (dataTableSiswa) dataTableSiswa.destroy();
+            
+            let html = '';
+            let tLulus = 0, tGagal = 0;
 
-        function openEdit(nisn, nama, status, nilai) {
+            data.forEach((row, index) => {
+                const status = (row.Kelulusan || '').toUpperCase();
+                let badge = '<span class="badge bg-secondary">KOSONG</span>';
+                
+                if (status.includes('LULUS') && !status.includes('TIDAK')) {
+                    badge = '<span class="badge bg-success">LULUS</span>';
+                    tLulus++;
+                } else if (status.includes('TIDAK') || status.includes('GAGAL') || status.includes('TUNDA')) {
+                    badge = '<span class="badge bg-danger">'+status+'</span>';
+                    tGagal++;
+                }
+
+                let imgThumb = row.Foto ? `<img src="${getDirectImg(row.Foto)}" class="foto-thumb" onclick="window.open('${row.Foto}')">` : '<span class="text-muted small">Kosong</span>';
+
+                html += `<tr>
+                    <td>${index + 1}</td>
+                    <td class="fw-bold">${row.Nisn}</td>
+                    <td>${row.Nama_Siswa}</td>
+                    <td>${row.Kelas || '-'}</td>
+                    <td>${row.Nilai || '0'}</td>
+                    <td>${row.Predikat || '-'}</td>
+                    <td>${badge}</td>
+                    <td>${imgThumb}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="bukaModal('${row.Nisn}', '${row.Nama_Siswa}', '${row.Nilai}', '${row.Predikat}', '${row.Kelulusan}')">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                    </td>
+                </tr>`;
+            });
+
+            document.getElementById('countTotal').innerText = data.length;
+            document.getElementById('countLulus').innerText = tLulus;
+            document.getElementById('countGagal').innerText = tGagal;
+            document.getElementById('bodySiswa').innerHTML = html;
+            
+            dataTableSiswa = $('#tabelSiswa').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json' }});
+        }
+
+        const editModal = new bootstrap.Modal(document.getElementById('modalEdit'));
+        function bukaModal(nisn, nama, nilai, predikat, status) {
             document.getElementById('editNisn').value = nisn;
             document.getElementById('editNama').value = nama;
-            // Set dropdown value (handle variasi casing)
-            const statusSelect = document.getElementById('editStatus');
-            statusSelect.value = 'LULUS'; // default
-            for(let i=0; i<statusSelect.options.length; i++){
-                if(statusSelect.options[i].value === status) {
-                    statusSelect.selectedIndex = i;
-                    break;
-                }
-            }
-            
-            document.getElementById('editNilai').value = nilai || '';
+            document.getElementById('editNilai').value = nilai;
+            document.getElementById('editPredikat').value = predikat;
+            document.getElementById('editStatus').value = status || 'LULUS';
             editModal.show();
         }
 
-        function saveData() {
-            const nisn = document.getElementById('editNisn').value;
-            const status = document.getElementById('editStatus').value;
-            const nilai = document.getElementById('editNilai').value;
-
-            showLoading(true);
-
-            // Payload untuk POST request
+        // Simpan Edit
+        function simpanEdit() {
+            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
             const payload = JSON.stringify({
                 action: 'update_nilai',
-                nisn: nisn,
-                status: status,
-                nilai: nilai
+                nisn: document.getElementById('editNisn').value,
+                nilai: document.getElementById('editNilai').value,
+                predikat: document.getElementById('editPredikat').value,
+                status: document.getElementById('editStatus').value
             });
 
-            // Menggunakan method POST dengan text/plain agar tidak terkena CORS Preflight
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: payload
-            })
+            fetch(SCRIPT_URL, { method: 'POST', body: payload })
             .then(res => res.json())
             .then(data => {
-                showLoading(false);
                 if(data.status === 'success') {
                     editModal.hide();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Data siswa berhasil diperbarui!',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => loadData());
-                } else {
-                    Swal.fire('Gagal', data.message, 'error');
-                }
-            })
-            .catch(err => {
-                showLoading(false);
-                console.error(err);
-                Swal.fire('Error', 'Terjadi kesalahan koneksi server.', 'error');
+                    Swal.fire('Berhasil!', 'Data tersimpan.', 'success').then(() => loadData());
+                } else Swal.fire('Error', data.message, 'error');
             });
         }
 
-        // Tambahkan listener untuk input password agar bisa tekan Enter
-        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkAdmin();
-            }
-        });
+        function getDirectImg(url) {
+            if(!url) return '';
+            let match = url.match(/[-\w]{25,}/);
+            return match ? 'https://drive.google.com/thumbnail?id=' + match[0] + '&sz=w200' : url;
+        }
     </script>
 </body>
 </html>

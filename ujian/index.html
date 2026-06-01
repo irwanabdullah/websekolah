@@ -1,0 +1,284 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* --- KODE AJAIB UNTUK MENUTUPI TEMA BLOGGER --- */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important; 
+  }
+
+  .miniweb-wrapper {
+    position: fixed !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important; 
+    height: 100vh !important; 
+    background-color: #d1d5db !important; 
+    z-index: 9999999 !important; 
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 15px;
+    box-sizing: border-box;
+    overflow-y: auto !important; 
+    font-family: 'Poppins', sans-serif;
+  }
+  /* ----------------------------------------------- */
+
+  .miniweb-container {
+    width: 100%;
+    max-width: 420px;
+    background-color: #e2e6eb;
+    min-height: max-content;
+    padding-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 30px; 
+  }
+  .mw-hero {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #ccc;
+  }
+  .mw-hero img.bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .mw-logo {
+    position: absolute !important;
+    bottom: -50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 110px !important; 
+    height: 110px !important; 
+    min-width: 110px !important; 
+    min-height: 110px !important;
+    border-radius: 50% !important; 
+    object-fit: cover !important; 
+    background: #fff !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    border: 4px solid #fff !important; 
+  }
+  .mw-content {
+    padding: 55px 25px 20px 25px;
+    text-align: center;
+  }
+  .mw-content h1 {
+    color: #1e293b;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    line-height: 1.3;
+  }
+  .mw-content p {
+    color: #334155;
+    font-size: 0.9rem;
+    margin: 0 0 25px 0;
+  }
+  
+  /* --- STYLING DROPDOWN ELEGANT --- */
+  .mw-select-container {
+    margin-bottom: 25px;
+    text-align: left;
+  }
+  .mw-select-container label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+  .mw-select {
+    width: 100%;
+    padding: 14px 15px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: #1e293b;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    appearance: none; /* Menghilangkan panah default */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+  }
+  .mw-select:focus {
+    border-color: #4338ca;
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.2);
+  }
+
+  /* --- STYLING TOMBOL --- */
+  .mw-btn {
+    display: flex;
+    align-items: center;
+    text-decoration: none !important;
+    color: white !important;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .mw-btn:hover {
+    transform: scale(1.02);
+  }
+  .mw-icon {
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 25px;
+  }
+  .mw-btn span {
+    padding: 15px;
+    text-align: left;
+    flex-grow: 1;
+  }
+  
+  /* Warna Tombol */
+  .bg-yellow { background-color: #f59e0b; }
+  .bg-teal { background-color: #14b8a6; }
+  .bg-purple { background-color: #4338ca; }
+  .bg-blue { background-color: #2563eb; }
+  .bg-red { background-color: #dc2626; }
+
+  /* Tombol Bulat (Kontak) */
+  .mw-contacts {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+  }
+  .mw-circle-btn {
+    width: 45px;
+    height: 45px;
+    background-color: #65a30d;
+    color: white !important;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none !important;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  .mw-circle-btn:hover {
+    transform: scale(1.1);
+  }
+
+  /* --- LOGIKA MENYEMBUNYIKAN/MENAMPILKAN TOMBOL --- */
+  .btn-group {
+    display: none; /* Sembunyikan default */
+    animation: fadeIn 0.4s ease-out; /* Animasi elegan saat muncul */
+  }
+  .btn-group.active {
+    display: block; /* Tampilkan saat aktif */
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="miniweb-wrapper">
+  <div class="miniweb-container">
+    
+    <div class="mw-hero">
+      <img src="https://i.ibb.co.com/BVVHXt8h/Kantor1.jpg" alt="Gerbang Sekolah" class="bg">
+      <img src="https://i.ibb.co.com/6RpHgFzW/android-chrome-192x192.png" alt="Logo Sekolah" class="mw-logo">
+    </div>
+
+    <div class="mw-content">
+      <h1>Ujian Akhir SMPN 13 Makassar</h1>
+      <p>Ujian Berbasis MiniWeb</p>
+
+      <a href="https://script.google.com/a/~/macros/s/AKfycbyyiFZJRx7oiw4r7CnZWm_vAP0r3GgjrvZp7jZfv9bs2oA_okbCDRO1dbECl7ysrUW7/exec" target="_blank" class="mw-btn bg-yellow">
+        <div class="mw-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <span>Daftar Hadir Ujian Susulan</span>
+      </a>
+      
+      <div class="mw-select-container">
+        <label for="pilihKelas">Silakan Pilih Kelas Anda:</label>
+        <select id="pilihKelas" class="mw-select" onchange="tampilkanSoal()">
+          <option value="" disabled selected>-- Pilih Kelas --</option>
+          <option value="kelas7">Kelas 7</option>
+          <option value="kelas8">Kelas 8</option>
+          <option value="kelas9">Kelas 9</option>
+        </select>
+      </div>
+
+      <div id="kelas7" class="btn-group">
+        <a href="#" target="_blank" class="mw-btn bg-teal">
+          <div class="mw-icon"><i class="fa-solid fa-book"></i></div>
+          <span>B. Indonesia (TOKEN: BIND7)</span>
+        </a>
+        <a href="#" target="_blank" class="mw-btn bg-blue">
+          <div class="mw-icon"><i class="fa-solid fa-square-root-variable"></i></div>
+          <span>Matematika (TOKEN: MTK7)</span>
+        </a>
+      </div>
+
+      <div id="kelas8" class="btn-group">
+        <a href="#" target="_blank" class="mw-btn bg-purple">
+          <div class="mw-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+          <span>PPKn (TOKEN: PKNKU13)</span>
+        </a>
+        <a href="#" target="_blank" class="mw-btn bg-red">
+          <div class="mw-icon"><i class="fa-solid fa-flask"></i></div>
+          <span>IPA Terpadu (TOKEN: IPA8)</span>
+        </a>
+      </div>
+
+      <div id="kelas9" class="btn-group">
+        <a href="#" target="_blank" class="mw-btn bg-teal">
+          <div class="mw-icon"><i class="fa-solid fa-language"></i></div>
+          <span>B. Inggris (TOKEN: BING9)</span>
+        </a>
+      </div>
+             
+      <div class="mw-contacts">
+        <a href="https://wa.me/6281999793085" target="_blank" class="mw-circle-btn" title="Chat WhatsApp">
+          <i class="fa-brands fa-whatsapp"></i>
+        </a>
+        <a href="tel:+6281999793085" class="mw-circle-btn" title="Telepon Panitia">
+          <i class="fa-solid fa-phone"></i>
+        </a> 
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function tampilkanSoal() {
+    // 1. Ambil nilai (value) dari dropdown yang dipilih
+    var kelasTerpilih = document.getElementById("pilihKelas").value;
+    
+    // 2. Sembunyikan semua grup tombol terlebih dahulu
+    var semuaGrup = document.querySelectorAll(".btn-group");
+    semuaGrup.forEach(function(grup) {
+      grup.classList.remove("active");
+    });
+    
+    // 3. Tampilkan hanya grup yang sesuai dengan pilihan
+    if (kelasTerpilih) {
+      document.getElementById(kelasTerpilih).classList.add("active");
+    }
+  }
+</script>

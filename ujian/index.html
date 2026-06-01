@@ -257,7 +257,7 @@
   var databaseSoal = [];
 
   // PENTING: Ganti URL di bawah ini dengan URL Web App Google Apps Script Anda!
-  var urlAPI = "https://script.google.com/macros/s/AKfycbzIJTAzF4W1cxVylW7Y88aGaB2jVJmteK3su5iFBW5M1xN_JJPLQQ39jEoDTyVmQ0SKhA/exec";
+  var urlAPI = "https://script.google.com/macros/s/AKfycbxD5gd83nD6iCCDUaQYFEuWtpy1MwNi_OUH7MsIsI_6Ojna8npGcIERTVGLRakdeWZklQ/exec";
 
   // Ambil data otomatis saat web dibuka
   window.onload = function() {
@@ -292,7 +292,8 @@
         var ikon = "fa-book"; 
         var namaMapel = soal.mapel.trim();
         
-        if (namaMapel === "Pendidikan Agama") ikon = "fa-hands-praying";
+        if (namaMapel === "Pendidikan Agama Islam") ikon = "fa-hands-praying";
+        else if (namaMapel === "Pendidikan Agama Kristen") ikon = "fa-hands-praying";
         else if (namaMapel === "Pendidikan Pancasila") ikon = "fa-landmark";
         else if (namaMapel === "Bahasa Indonesia") ikon = "fa-paragraph";
         else if (namaMapel === "Bahasa Inggris") ikon = "fa-language";

@@ -127,16 +127,16 @@
                 <p>Alamat: Jl. Tamalate VI No. 2, Perumnas Tamalate Kec. Rappocini</p>
 				<p>Website: smpn13makassar.my.id | Email: smpn13makassar@yahoo.co.id</p>
             </div>
-            <img src="https://i.ibb.co.com/SXV3cpZC/Logo-SMPN13.png" alt="Logo Sekolah">
+            <img src="https://i.ibb.co.com/CKWmmV5K/Logo-SMPN13.jpg" alt="Logo Sekolah">
         </div>
 
         <div class="judul-surat">
             <h4>SURAT KETERANGAN HASIL TES KEMAMPUAN AKADEMIK (TKA)</h4>
-            <p>Nomor: 800/301/UPT SPF SMPN13/SKHTKA/VI/2026</p>
+            <p>Nomor: 800/301/UPT SPF SMPN13/SKTKA/VI/2026</p>
         </div>
 
         <div class="isi-surat">
-            <p>Kepala Sekolah sebagai Panitia Pelaksana Tes Kemampuan Akademik UPT SPF SMP Negeri 13 Makassar menerangkan bahwa siswa di bawah ini:</p>
+            <p>Kepala Sekolah UPT SPF SMP Negeri 13 Makassar menerangkan bahwa siswa di bawah ini:</p>
             
             <table class="tabel-biodata">
                 <tr><td style="width: 25%;">Nama Lengkap</td><td style="width: 3%;">:</td><td id="prNama" style="font-weight: bold; text-transform: uppercase;">-</td></tr>
@@ -144,7 +144,7 @@
                 <tr><td>Tempat, Tanggal Lahir</td><td>:</td><td id="prTTL">-</td></tr>
             </table>
 
-            <p style="margin-top: 15px;">Telah mengikuti evaluasi ujian dengan rincian perolehan skor capaian nilai akademik sebagai berikut:</p>
+            <p style="margin-top: 15px;">Telah mengikuti Tes Kemampuan Akademik (TKA) dengan rincian perolehan skor capaian nilai akademik sebagai berikut:</p>
             
             <table style="width: 100%; border-collapse: collapse; margin: 15px 0; text-align: center; font-size: 11pt;" border="1">
                 <thead>
@@ -227,9 +227,9 @@
 
         // 3. Render Data ke Tampilan Dashboard Layar dan Mode Cetak
         function renderData(data) {
-            // Parsing data nilai numerik dari spreadsheet
-            const mtk = parseFloat(data['Nilai Matematika']) || 0;
-            const bing = parseFloat(data['Nilai Bahasa Indonesia']) || 0;
+            // Mengambil data string langsung agar koma desimal tetap utuh sesuai di spreadsheet
+            const mtk = (data['Nilai Matematika'] !== undefined && data['Nilai Matematika'] !== "") ? data['Nilai Matematika'] : "0";
+            const bing = (data['Nilai Bahasa Indonesia'] !== undefined && data['Nilai Bahasa Indonesia'] !== "") ? data['Nilai Bahasa Indonesia'] : "0";
 
             // A. Mengisi Data Dashboard Utama (Layar Web)
             document.getElementById('resNama').innerText = data['Nama Siswa'] || '-';
@@ -245,7 +245,7 @@
             document.getElementById('prMtk').innerText = mtk;
             document.getElementById('prBing').innerText = bing;
 
-            // C. Pembuatan QR Code Validasi Otomatis (Hanya memuat data esensial yang tampil)
+            // C. Pembuatan QR Code Validasi Otomatis (Memuat data desimal asli)
             const qrText = `VALIDASI HASIL NILAI TKA\nInstansi: UPT SPF SMPN 13 Makassar\nNama Siswa: ${data['Nama Siswa']}\nNISN: ${data['NISN']}\nMatematika: ${mtk}\nB. Indonesia: ${bing}\nStatus Berkas: VALID & SAH`;
             document.getElementById('prQRCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&margin=8&data=${encodeURIComponent(qrText)}`;
         }

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator ID Card Kegiatan - Premium KOP & Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* Mengunci rasio pratinjau agar sesuai dengan ukuran nyata 90 x 120 mm */
+        .id-card-render {
+            width: 90mm;
+            height: 120mm;
+            min-width: 90mm;
+            min-height: 120mm;
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen py-8 px-4">
+
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 bg-slate-850 bg-indigo-900 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Aplikasi Pembuat ID Card Pro</h1>
+                <p class="text-sm text-indigo-200">Fitur: KOP Instansi, Teks Jumbo, & Variasi Tema Konteks</p>
+            </div>
+            <span class="bg-indigo-800 px-3 py-1 rounded-full text-xs font-semibold">v1.2</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6">
+            
+            <div class="lg:col-span-5 space-y-4 bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Form Data & Konfigurasi</h2>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Nama Kegiatan</label>
+                    <input type="text" id="in-kegiatan" value="SEMINAR NASIONAL TEKNOLOGI 2026" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Nama Sekolah / Instansi</label>
+                    <input type="text" id="in-sekolah" value="SMP NEGERI 1 KOTA PILIHAN" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Alamat Sekolah / Instansi</label>
+                    <input type="text" id="in-alamat" value="Jl. Pendidikan No. 45, Kec. Cerdas, Kota Pilihan" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Nama Lengkap</label>
+                    <input type="text" id="in-nama" value="Irwan, S.Pd" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Jabatan</label>
+                    <select id="in-jabatan" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="kepala sekolah">Kepala Sekolah</option>
+                        <option value="panitia" selected>Panitia</option>
+                        <option value="proktor">Proktor</option>
+                        <option value="teknisi">Teknisi</option>
+                        <option value="pengawas">Pengawas</option>
+                        <option value="peserta">Peserta</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1 font-bold text-indigo-700">Alternatif Tema Background (Sesuai Konteks)</label>
+                    <select id="in-tema" class="w-full px-3 py-2 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-indigo-50 font-medium text-indigo-900">
+                        <option value="tech">Teknologi / IT / ANBK (Modern Blue Cyan)</option>
+                        <option value="edu">Pendidikan / Formal / Ujian (Elegant Royal Gold)</option>
+                        <option value="nature">Sains / Kelautan / Alam (Fresh Emerald Mint)</option>
+                        <option value="warm">Seni / Olahraga / Kreatif (Energetic Sunset Orange)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Upload Logo</label>
+                        <input type="file" id="in-logo" accept="image/png, image/jpeg" class="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Upload Foto</label>
+                        <input type="file" id="in-foto" accept="image/png, image/jpeg" class="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Upload Custom Background (Opsional)</label>
+                    <input type="file" id="in-bg" accept="image/png, image/jpeg" class="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="text-[11px] text-gray-400 mt-1">*Mengunggah background manual akan menimpa pilihan tema di atas.</p>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Versi Bingkai Foto</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setVersion(1)" id="btn-v1" class="py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white border border-indigo-600 shadow-sm">Versi 1 (Bulat)</button>
+                        <button onclick="setVersion(2)" id="btn-v2" class="py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">Versi 2 (Oval)</button>
+                        <button onclick="setVersion(3)" id="btn-v3" class="py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50">Versi 3 (3x4)</button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="cetakPDF()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow transition duration-200 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+                        </svg>
+                        Cetak ke PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 min-h-[550px]">
+                <h2 class="text-sm font-bold uppercase text-gray-400 mb-4 tracking-widest">Pratinjau ID Card</h2>
+                
+                <div id="id-card-preview" class="id-card-render bg-white rounded-md shadow-2xl bg-cover bg-center transition-all duration-300">
+                    
+                    <div class="absolute top-0 left-0 w-full pt-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-2.5 w-full">
+                            <img id="card-logo" src="https://via.placeholder.com/100?text=Logo" class="w-[14mm] h-[14mm] object-contain flex-shrink-0" alt="Logo">
+                            
+                            <div class="text-left flex-1 min-w-0">
+                                <h4 id="card-sekolah" class="text-[11px] font-extrabold text-slate-900 uppercase tracking-wide leading-tight line-clamp-2">SMK NEGERI 1 KOTA PILIHAN</h4>
+                                <p id="card-alamat" class="text-[8px] text-slate-700 font-medium leading-tight line-clamp-2 mt-0.5">Jl. Pendidikan No. 45, Kec. Cerdas, Kota Pilihan</p>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full border-b-2 border-slate-900 my-1.5 opacity-80"></div>
+                        
+                        <h3 id="card-kegiatan" class="text-[14px] font-black text-indigo-950 uppercase tracking-wide text-center px-1 line-clamp-2 leading-tight drop-shadow-sm">SEMINAR NASIONAL TEKNOLOGI 2026</h3>
+                    </div>
+
+                    <div class="absolute top-[46mm] left-0 w-full flex justify-center items-center">
+                        <div id="foto-container" class="flex justify-center items-center overflow-hidden border-4 border-white shadow-md bg-gray-200 transition-all duration-300">
+                            <img id="card-foto" src="https://via.placeholder.com/150x200?text=Foto" class="w-full h-full object-cover" alt="Foto">
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-5 left-0 w-full text-center px-4">
+                        <h2 id="card-nama" class="text-[14px] font-extrabold text-gray-900 uppercase tracking-wide px-1 line-clamp-1 leading-tight mb-2">Ahmad Fauzi, S.Kom</h2>
+                        <div class="inline-block">
+                            <span id="card-jabatan" class="px-5 py-1 text-[11px] font-bold text-white uppercase tracking-wider rounded-full shadow-sm bg-indigo-600">
+                                Panitia
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let currentVersion = 1; 
+        let customBgActive = false; // Flag check jika user upload BG sendiri
+
+        // Kumpulan Palet Gredien Dinamis Sesuai Konteks Kegiatan
+        const themeBackgrounds = {
+            tech: 'linear-gradient(135deg, #e0f2fe 0%, #fffffb 50%, #bae6fd 100%)',   // Teal/Cyan Ringan (Teknologi)
+            edu: 'linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #fde68a 100%)',    // Amber Soft/Aksen Emas (Pendidikan/Resmi)
+            nature: 'linear-gradient(135deg, #dcfce7 0%, #ffffff 50%, #bbf7d0 100%)', // Mint Segar (Sains/Sains alam)
+            warm: 'linear-gradient(135deg, #ffedd5 0%, #ffffff 50%, #fed7aa 100%)'    // Jingga Hangat (Seni/Kreatif)
+        };
+
+        const roleColors = {
+            'kepala sekolah': 'bg-red-600 text-white',
+            'panitia': 'bg-indigo-600 text-white',
+            'proktor': 'bg-emerald-600 text-white',
+            'teknisi': 'bg-amber-500 text-gray-900',
+            'pengawas': 'bg-purple-600 text-white',
+            'peserta': 'bg-sky-600 text-white'
+        };
+
+        // DOM Input
+        const inKegiatan = document.getElementById('in-kegiatan');
+        const inSekolah = document.getElementById('in-sekolah');
+        const inAlamat = document.getElementById('in-alamat');
+        const inNama = document.getElementById('in-nama');
+        const inJabatan = document.getElementById('in-jabatan');
+        const inTema = document.getElementById('in-tema');
+        const inLogo = document.getElementById('in-logo');
+        const inFoto = document.getElementById('in-foto');
+        const inBg = document.getElementById('in-bg');
+
+        // DOM Output Card
+        const cardKegiatan = document.getElementById('card-kegiatan');
+        const cardSekolah = document.getElementById('card-sekolah');
+        const cardAlamat = document.getElementById('card-alamat');
+        const cardNama = document.getElementById('card-nama');
+        const cardJabatan = document.getElementById('card-jabatan');
+        const cardLogo = document.getElementById('card-logo');
+        const cardFoto = document.getElementById('card-foto');
+        const cardPreview = document.getElementById('id-card-preview');
+        const fotoContainer = document.getElementById('foto-container');
+
+        // Sinkronisasi Input Teks ke Card secara Real-time
+        inKegiatan.addEventListener('input', () => cardKegiatan.innerText = inKegiatan.value || 'NAMA KEGIATAN');
+        inSekolah.addEventListener('input', () => cardSekolah.innerText = inSekolah.value || 'NAMA SEKOLAH');
+        inAlamat.addEventListener('input', () => cardAlamat.innerText = inAlamat.value || 'ALAMAT INSTANSI');
+        inNama.addEventListener('input', () => cardNama.innerText = inNama.value || 'NAMA LENGKAP');
+        
+        inJabatan.addEventListener('change', () => {
+            const val = inJabatan.value;
+            cardJabatan.innerText = inJabatan.options[inJabatan.selectedIndex].text;
+            cardJabatan.className = `px-5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm ${roleColors[val] || 'bg-gray-600 text-white'}`;
+        });
+
+        // Handler Perubahan Tema Dropdown
+        inTema.addEventListener('change', function() {
+            if (!customBgActive) {
+                cardPreview.style.backgroundImage = themeBackgrounds[this.value];
+            }
+        });
+
+        // FileReader Handle Gambar (Logo, Foto, Custom BG)
+        inLogo.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => cardLogo.src = e.target.result;
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        inFoto.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => cardFoto.src = e.target.result;
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        inBg.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                customBgActive = true;
+                const reader = new FileReader();
+                reader.onload = (e) => cardPreview.style.backgroundImage = `url('${e.target.result}')`;
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Kontrol Bentuk Bingkai Foto (Versi 1, 2, 3)
+        function setVersion(version) {
+            currentVersion = version;
+            [1, 2, 3].forEach(v => {
+                document.getElementById(`btn-v${v}`).className = "py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50";
+            });
+            document.getElementById(`btn-v${version}`).className = "py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white border border-indigo-600 shadow-sm";
+
+            fotoContainer.className = "flex justify-center items-center overflow-hidden border-4 border-white shadow-md bg-gray-200 transition-all duration-300";
+            
+            if (version === 1) {
+                fotoContainer.classList.add('w-[32mm]', 'h-[32mm]', 'rounded-full');
+            } else if (version === 2) {
+                fotoContainer.classList.add('w-[30mm]', 'h-[40mm]', 'rounded-[50%]');
+            } else if (version === 3) {
+                fotoContainer.classList.add('w-[30mm]', 'h-[40mm]', 'rounded-sm');
+            }
+        }
+
+        // Inisialisasi Tema Awal (Default: Tech)
+        cardPreview.style.backgroundImage = themeBackgrounds['tech'];
+        setVersion(1);
+
+        // FUNGSI UTAMA CETAK PDF (ANTI-BUG SCROLL FIXED)
+        function cetakPDF() {
+            const element = document.getElementById('id-card-preview');
+            const namaFile = (inNama.value || 'id-card').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            
+            const opt = {
+                margin:       0,
+                filename:     `ID_Card_${namaFile}.pdf`,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { 
+                    scale: 3, 
+                    useCORS: true,
+                    scrollY: 0,  // Mencegah gap putih di atas PDF jika halaman ter-scroll
+                    scrollX: 0   
+                },
+                jsPDF:        { unit: 'mm', format: [90, 120], orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>

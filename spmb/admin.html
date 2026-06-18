@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PPDB</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --bg-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fc;
+            overflow-x: hidden;
+        }
+
+        /* --- MODERN LOGIN STYLE --- */
+        #loginSection {
+            height: 100vh;
+            width: 100vw;
+            background: var(--bg-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: #eef2ff;
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.2);
+        }
+
+        .form-floating-custom input {
+            border-radius: 10px;
+            border: 1px solid #d1d3e2;
+            padding: 12px 15px;
+        }
+        
+        .form-floating-custom input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .btn-login {
+            background: var(--bg-gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
+        }
+
+        /* --- DASHBOARD STYLE --- */
+        .sidebar-brand {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            letter-spacing: 1px;
+        }
+
+        .card-stat {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card-stat:hover { transform: translateY(-5px); }
+
+        .table-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            background: white;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: #f8f9fc;
+            color: #858796;
+            font-weight: 600;
+            border-bottom: 2px solid #e3e6f0;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .status-badge { font-size: 0.75em; padding: 5px 10px; border-radius: 30px; font-weight: 600; }
+        
+        /* Modal Detail Image Fix */
+        #dFoto {
+            width: 150px; height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in { animation: fadeInUp 0.5s ease forwards; }
+    </style>
+</head>
+<body>
+
+    <div id="loginSection">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h4 class="fw-bold mb-1">Admin Portal</h4>
+            <p class="text-muted small mb-4">Silakan masuk untuk mengelola data PPDB</p>
+            
+            <div class="form-group mb-3 text-start">
+                <label class="small fw-bold text-muted ms-1 mb-1">Password Akses</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-key text-muted"></i></span>
+                    <input type="password" id="adminPass" class="form-control border-start-0 ps-0" placeholder="Masukkan Kode Keamanan...">
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-login w-100 text-white mt-3" onclick="checkLogin()">
+                MASUK DASHBOARD <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+            
+            <div class="mt-4 pt-3 border-top">
+                <small class="text-muted" style="font-size: 10px;">&copy; 2026 Panitia PPDB</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid d-none" id="adminPanel">
+        <nav class="navbar navbar-light bg-white shadow-sm mb-4 rounded-bottom">
+            <div class="container-fluid py-2">
+                <span class="navbar-brand mb-0 h1 sidebar-brand"><i class="fas fa-graduation-cap me-2"></i>PPDB ADMIN</span>
+                <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <div class="container fade-in">
+            <div class="row mb-4">
+                <div class="col-lg-12">
+                    <div class="card card-stat bg-white p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold text-primary mb-1">Manajemen Pendaftaran</h5>
+                                <small class="text-muted">Generate NISN agar siswa dapat login.</small>
+                            </div>
+                            <div class="bg-primary text-white rounded-circle p-3 shadow-sm">
+                                <i class="fas fa-user-plus fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="newNisn" placeholder="Ketik NISN Baru...">
+                            <button class="btn btn-primary px-4 fw-bold" onclick="addNisn()">
+                                <i class="fas fa-plus me-1"></i> TAMBAH
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-card p-4">
+                        <div class="d-md-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold m-0 text-dark">Data Masuk Siswa</h5>
+                            <div class="mt-3 mt-md-0 d-flex gap-2">
+                                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Cari Nama / NISN..." onkeyup="filterData()" style="width: 250px;">
+                                <button class="btn btn-sm btn-light border" onclick="loadData()"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Nama Siswa</th>
+                                        <th>NISN</th>
+                                        <th>Jalur</th>
+                                        <th>Wawancara</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Opsi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                        <div id="emptyState" class="text-center py-5 d-none">
+                            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" width="80" class="opacity-50 mb-2">
+                            <p class="text-muted small">Belum ada data ditemukan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-clipboard-check me-2"></i>Verifikasi Berkas</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center border-end">
+                            <div class="mb-3 position-relative">
+                                <img id="dFoto" src="" class="bg-light" alt="Foto Siswa">
+                            </div>
+                            <h5 id="dNama" class="fw-bold mb-1"></h5>
+                            <p class="text-muted small mb-2"><i class="fas fa-id-card me-1"></i> <span id="dNisn"></span></p>
+                            <span id="dJalur" class="badge bg-info text-dark mb-3"></span>
+                            <div class="mt-2" id="dStatusBadge"></div>
+                        </div>
+
+                        <div class="col-md-8 ps-md-4">
+                            <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">Dokumen Pendukung</h6>
+                            
+                            <div class="row g-2 mb-4">
+                                <div class="col-6"><a id="linkKK" target="_blank" class="btn btn-outline-secondary btn-sm w-100 text-start"><i class="fas fa-users me-2"></i>Kartu Keluarga</a></div>
+                                <div class="col-6"><a id="linkLulus" target="_blank" class="btn btn-outline-secondary btn-sm w-100 text-start"><i class="fas fa-graduation-cap me-2"></i>Bukti Lulus</a></div>
+                                <div class="col-6"><a id="linkAkta" target="_blank" class="btn btn-outline-secondary btn-sm w-100 text-start"><i class="fas fa-child me-2"></i>Akta Lahir</a></div>
+                                <div class="col-6"><a id="linkIjazah" target="_blank" class="btn btn-outline-secondary btn-sm w-100 text-start"><i class="fas fa-scroll me-2"></i>Ijazah</a></div>
+                                
+                                <div class="col-12 mt-1">
+                                    <a id="linkSertif" target="_blank" class="btn btn-outline-success btn-sm w-100 text-start d-none"><i class="fas fa-trophy me-2"></i> Sertifikat Prestasi</a>
+                                </div>
+                                <div class="col-12 mt-1">
+                                    <a id="linkSurat" target="_blank" class="btn btn-outline-info btn-sm w-100 text-start d-none"><i class="fas fa-envelope-open-text me-2"></i> Surat Tugas Orang Tua</a>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-uppercase text-secondary small mb-2 border-bottom pb-2">Keputusan Admin</h6>
+                            <div class="mb-3">
+                                <label class="small fw-bold text-muted mb-1">Jadwal Wawancara</label>
+                                <input type="text" class="form-control" id="inputWawancara" placeholder="Hari, Tanggal, Jam (Opsional)">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success flex-fill fw-bold shadow-sm" onclick="updateStatusAction('Disetujui')">
+                                    <i class="fas fa-check-circle me-1"></i> SETUJUI
+                                </button>
+                                <button class="btn btn-danger flex-fill fw-bold shadow-sm" onclick="updateStatusAction('Ditolak')">
+                                    <i class="fas fa-times-circle me-1"></i> TOLAK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- KONFIGURASI ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6sBK8O96oGV-nLOBhBDlsqyHA1Zdjcz9kQ6bQyj4BXD5o-HYbYEyQKRK8vWcECqwH/exec"; 
+        
+        let allData = [];
+        let currentId = "";
+
+        // Elements
+        const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+        
+        // --- 1. AUTH LOGIC (MODERN TRANSITION) ---
+        if(sessionStorage.getItem('adminLogged')) {
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('adminPanel').classList.remove('d-none');
+            loadData();
+        }
+
+        function checkLogin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === 'admin123') {
+                sessionStorage.setItem('adminLogged', true);
+                
+                // Animasi Transisi Halus
+                const loginSec = document.getElementById('loginSection');
+                loginSec.style.transition = 'opacity 0.5s ease';
+                loginSec.style.opacity = '0';
+                
+                setTimeout(() => {
+                    loginSec.classList.add('d-none');
+                    document.getElementById('adminPanel').classList.remove('d-none');
+                    loadData();
+                }, 500);
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    text: 'Password yang Anda masukkan salah.',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminLogged');
+            location.reload();
+        }
+
+        // --- 2. DATA HANDLING ---
+        async function addNisn() {
+            const nisn = document.getElementById('newNisn').value;
+            if(!nisn) return Swal.fire('Kosong', 'Masukkan NISN terlebih dahulu', 'warning');
+            
+            Swal.showLoading();
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'add_nisn', nisn: nisn })
+                });
+                const json = await res.json();
+                Swal.close();
+                
+                if(json.status === 'success') {
+                    Swal.fire('Berhasil', 'Slot NISN telah dibuka', 'success');
+                    document.getElementById('newNisn').value = '';
+                    loadData();
+                } else {
+                    Swal.fire('Gagal', json.message, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Gagal terhubung ke server', 'error'); }
+        }
+
+        async function loadData() {
+            // Tampilkan loading skeleton/spinner di tabel jika perlu
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=get_all`);
+                const json = await res.json();
+                allData = json.data.reverse(); 
+                renderTable(allData);
+            } catch (e) { console.error(e); }
+        }
+
+        function filterData() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allData.filter(row => 
+                (row.nama && row.nama.toLowerCase().includes(q)) ||
+                (row.nisn && String(row.nisn).includes(q)) ||
+                (row.jalur && row.jalur.toLowerCase().includes(q))
+            );
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if(data.length === 0) {
+                emptyState.classList.remove('d-none');
+            } else {
+                emptyState.classList.add('d-none');
+                
+                data.forEach(row => {
+                    let badgeClass = 'bg-secondary';
+                    let statusIcon = '';
+
+                    if(row.status === 'Disetujui') { badgeClass = 'bg-success'; statusIcon = '<i class="fas fa-check me-1"></i>'; }
+                    else if(row.status === 'Ditolak') { badgeClass = 'bg-danger'; statusIcon = '<i class="fas fa-times me-1"></i>'; }
+                    else if(row.status === 'Pending') { badgeClass = 'bg-warning text-dark'; statusIcon = '<i class="fas fa-clock me-1"></i>'; }
+                    else { badgeClass = 'bg-light text-muted border'; statusIcon = ''; }
+
+                    const namaShow = row.nama ? `<span class="fw-bold text-dark">${row.nama}</span>` : '<span class="text-muted fst-italic">Belum Mendaftar</span>';
+                    const btnState = row.status === 'Belum Daftar' ? 'disabled' : '';
+                    const wawancaraShow = row.wawancara ? `<span class="badge bg-soft-primary text-primary border border-primary">${row.wawancara}</span>` : '-';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="small text-muted">${new Date(row.timestamp).toLocaleDateString('id-ID')}</td>
+                            <td>${namaShow}</td>
+                            <td>${row.nisn}</td>
+                            <td><span class="small">${row.jalur}</span></td>
+                            <td>${wawancaraShow}</td>
+                            <td><span class="status-badge ${badgeClass}">${statusIcon}${row.status}</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary shadow-sm rounded-pill px-3" onclick="openDetail('${row.id}')" ${btnState}>
+                                    Detail <i class="fas fa-chevron-right ms-1" style="font-size: 0.7em;"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // --- 3. DETAIL & IMAGE LOGIC ---
+        function getSafeImgUrl(driveUrl) {
+            try {
+                // Mengubah link Drive menjadi link lh3.googleusercontent agar bisa dirender
+                const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    return `https://lh3.googleusercontent.com/d/${match[1]}`;
+                }
+                return "https://via.placeholder.com/150?text=No+Foto"; 
+            } catch (e) { return "https://via.placeholder.com/150?text=Error"; }
+        }
+
+        function openDetail(id) {
+            const d = allData.find(x => x.id === id);
+            currentId = id;
+
+            // Set Texts
+            document.getElementById('dNama').innerText = d.nama;
+            document.getElementById('dNisn').innerText = d.nisn;
+            document.getElementById('dJalur').innerText = d.jalur;
+            document.getElementById('dStatusBadge').innerHTML = `<span class="badge bg-secondary">${d.status}</span>`;
+            document.getElementById('inputWawancara').value = d.wawancara || '';
+
+            // Set Image (Fitur Penting)
+            document.getElementById('dFoto').src = d.foto ? getSafeImgUrl(d.foto) : "https://via.placeholder.com/150";
+
+            // Helper Set Link
+            const setLink = (elId, url) => {
+                const el = document.getElementById(elId);
+                if(url && url.length > 5) {
+                    el.href = url;
+                    el.classList.remove('disabled', 'btn-outline-secondary');
+                    el.classList.add('btn-primary', 'text-white');
+                    el.innerHTML = el.innerHTML.replace('btn-outline-secondary', ''); // Style fix
+                } else {
+                    el.href = '#';
+                    el.classList.add('disabled', 'btn-outline-secondary');
+                    el.classList.remove('btn-primary', 'text-white');
+                }
+            };
+
+            setLink('linkKK', d.kk);
+            setLink('linkLulus', d.lulus);
+            setLink('linkIjazah', d.ijazah);
+            setLink('linkAkta', d.akta);
+
+            // Kondisional: Sertifikat
+            const btnSertif = document.getElementById('linkSertif');
+            if(d.sertifikat) { btnSertif.classList.remove('d-none'); btnSertif.href = d.sertifikat; }
+            else btnSertif.classList.add('d-none');
+
+            // Kondisional: Surat Tugas
+            const btnSurat = document.getElementById('linkSurat');
+            if(d.surat_tugas) { btnSurat.classList.remove('d-none'); btnSurat.href = d.surat_tugas; }
+            else btnSurat.classList.add('d-none');
+
+            detailModal.show();
+        }
+
+        async function updateStatusAction(status) {
+            const wawancara = document.getElementById('inputWawancara').value;
+            Swal.showLoading();
+            
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'update_status', 
+                        id: currentId, 
+                        newStatus: status,
+                        wawancara: wawancara
+                    })
+                });
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Diperbarui',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                
+                detailModal.hide();
+                loadData();
+            } catch (e) {
+                Swal.fire('Error', 'Gagal update status', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

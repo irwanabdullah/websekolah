@@ -6,9 +6,10 @@
     <title>PPDB Online - UPT SPF SMPN 13 MKS</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         /* --- STYLE DASAR --- */
@@ -33,11 +34,11 @@
             display: none; flex-direction: column; justify-content: center; align-items: center;
         }
 
-        /* --- PDF STYLE (A4 CENTER) --- */
+        /* --- PDF STYLE (A4 CENTER FIXED) --- */
         .pdf-container {
             width: 100%;
             overflow-x: auto;
-            padding: 10px;
+            padding: 15px;
             background: #555;
             border-radius: 8px;
         }
@@ -51,6 +52,10 @@
             color: #000000;
             box-sizing: border-box;
             position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         #printArea * {
@@ -140,11 +145,11 @@
                             <select class="form-select form-select-lg" name="jalur" id="jalurSelect" onchange="toggleUploads()" required>
                                 <option value="" disabled selected>Pilih Jalur...</option>
                                 <option value="Zonasi">Domisili</option>
-                                <option value="Prestasi Akademik">Prestasi Akademik</option>
+                                <option value="Prestasi Academic">Prestasi Akademik</option>
                                 <option value="Prestasi Non-Akademik">Prestasi Non-Akademik</option>
-								<option value="Perpindahan Orang Tua">Afirmasi</option>
+                                <option value="Perpindahan Orang Tua">Afirmasi</option>
                                 <option value="Perpindahan Orang Tua">Perpindahan Tugas Orang Tua</option>
-								<option value="Zonasi">Lainnya</option>
+                                <option value="Zonasi">Lainnya</option>
                             </select>
                         </div>
 
@@ -285,30 +290,26 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // --- MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI ---
+        // --- APPS SCRIPT URL ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwetWsKHOvbIDlmjAKkiCH__ma-RrBgx1RVHQplGXTazkQiPwLe5iZrN9px67yUigaJ/exec"; 
 
         // 1. LOGIKA TOGGLE (Sertifikat & Surat Tugas)
         function toggleUploads() {
             const jalur = document.getElementById('jalurSelect').value;
             
-            // Elements
             const divSertif = document.getElementById('divSertifikat');
             const fileSertif = document.getElementById('fileSertifikat');
             const divSurat = document.getElementById('divSuratTugas');
             const fileSurat = document.getElementById('fileSuratTugas');
 
-            // Reset (Hide All)
             divSertif.classList.add('d-none');
             fileSertif.required = false;
             divSurat.classList.add('d-none');
             fileSurat.required = false;
 
-            // Logic Check
             if (jalur.includes('Prestasi')) {
                 divSertif.classList.remove('d-none');
                 fileSertif.required = true;
@@ -327,16 +328,14 @@
             Swal.showLoading();
             
             try {
-                // Fetch check login
                 const response = await fetch(`${SCRIPT_URL}?action=login_check&nisn=${nisn}`);
                 const json = await response.json();
                 Swal.close();
 
                 if (json.status === 'open') {
-                    // NISN ada, tapi belum isi data -> Buka Form
                     document.getElementById('loginSection').classList.add('d-none');
                     document.getElementById('formSection').classList.remove('d-none');
-                    document.getElementById('formNisn').value = json.data.nisn; // Auto-fill NISN
+                    document.getElementById('formNisn').value = json.data.nisn;
                     
                     Swal.fire({
                         icon: 'info',
@@ -345,7 +344,6 @@
                     });
 
                 } else if (json.status === 'registered') {
-                    // Sudah isi data -> Buka Dashboard
                     showStatusDashboard(json.data);
                     
                 } else {
@@ -361,7 +359,6 @@
         async function submitForm(e) {
             e.preventDefault();
 
-            // Cek Ukuran File (Max 2MB)
             const inputs = document.querySelectorAll('input[type="file"]');
             for (let input of inputs) {
                 if (input.files.length > 0 && input.files[0].size > 2 * 1024 * 1024) {
@@ -376,7 +373,7 @@
                 
                 const payload = {
                     action: "register",
-                    nisn: document.getElementById('formNisn').value, // Ambil dari readonly
+                    nisn: document.getElementById('formNisn').value,
                     jalur: f.jalur.value, 
                     nama: f.nama.value,
                     hp: f.hp.value, 
@@ -390,7 +387,7 @@
                         ijazah: await getFile('fileIjazah'),
                         akta: await getFile('fileAkta'), 
                         sertifikat: await getFile('fileSertifikat'),
-                        surat_tugas: await getFile('fileSuratTugas') // Upload Surat Tugas
+                        surat_tugas: await getFile('fileSuratTugas')
                     }
                 };
 
@@ -401,7 +398,7 @@
 
                 if (json.status === 'success') {
                     Swal.fire('Sukses!', 'Data berhasil disimpan.', 'success').then(() => {
-                        location.reload(); // Reload agar user login ulang dan lihat dashboard
+                        location.reload();
                     });
                 } else {
                     Swal.fire('Gagal', json.message, 'error');
@@ -417,7 +414,6 @@
             document.getElementById('loginSection').classList.add('d-none');
             document.getElementById('statusSection').classList.remove('d-none');
 
-            // Isi Data Teks
             document.getElementById('resId').innerText = data.id;
             document.getElementById('resNama').innerText = data.nama;
             document.getElementById('resNisn').innerText = data.nisn;
@@ -427,10 +423,8 @@
             document.getElementById('resWawancara').innerText = data.wawancara ? data.wawancara : 'Belum Dijadwalkan';
             document.getElementById('printDate').innerText = new Date().toLocaleDateString('id-ID');
             
-            // Isi Foto
             document.getElementById('resFoto').src = getSafeImgUrl(data.foto);
 
-            // Logic Status & Button
             const alertBox = document.getElementById('statusAlert');
             const btn = document.getElementById('btnDownload');
 
@@ -465,7 +459,7 @@
             return null;
         };
 
-        // 6. HELPER: Image URL Fixer for PDF
+        // 6. HELPER: Image URL Fixer for PDF (MENGGUNAKAN ENDPOINT UC RESMI GOOGLE DRIVE)
         function getSafeImgUrl(driveUrl) {
 			if (!driveUrl || driveUrl === "" || driveUrl.includes("Error")) {
 				return "https://via.placeholder.com/150";
@@ -484,36 +478,41 @@
 			}
 		}
 
-        // 7. HELPER: Download PDF (A4 Full Fix)
+        // 7. HELPER: Download PDF (SANGAT SIMETRIS DI KERTAS A4 & ANTI-BLANK)
         function downloadPDF() {
             const element = document.getElementById('printArea');
-            const nisn = document.getElementById('resNisn').innerText;
+            const nisn = document.getElementById('resNisn').innerText || "PPDB_13";
             
             const opt = {
-                margin: 0, 
-                filename: `Bukti_PPDB_${nisn}.pdf`, 
-                image: { type: 'jpeg', quality: 0.98 },
+                margin: [10, 10, 10, 10], // Menjaga simetris sisi atas, kiri, bawah, kanan (dalam mm)
+                filename: `Bukti_PPDB_${nisn}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
                 html2canvas: { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0, 
-                    windowWidth: 1200 // Paksa lebar desktop agar layout stabil
+                    logging: false,
+                    letterRendering: true,
+                    scrollY: 0,
+                    scrollX: 0
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             Swal.fire({
                 title: 'Menyiapkan PDF...',
-                text: 'Mohon tunggu sebentar',
+                text: 'Harap tunggu sebentar',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading() }
             });
 
-            setTimeout(() => {
-                html2pdf().set(opt).from(element).save().then(() => {
-                    Swal.close();
-                });
-            }, 1000);
+            // Memastikan seluruh aset font bawaan browser selesai di-render ke layout
+            document.fonts.ready.then(() => {
+                setTimeout(() => {
+                    html2pdf().set(opt).from(element).save().then(() => {
+                        Swal.close();
+                    });
+                }, 500);
+            });
         }
     </script>
 </body>

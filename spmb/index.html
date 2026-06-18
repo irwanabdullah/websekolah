@@ -290,7 +290,7 @@
 
     <script>
         // --- MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6sBK8O96oGV-nLOBhBDlsqyHA1Zdjcz9kQ6bQyj4BXD5o-HYbYEyQKRK8vWcECqwH/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwetWsKHOvbIDlmjAKkiCH__ma-RrBgx1RVHQplGXTazkQiPwLe5iZrN9px67yUigaJ/exec"; 
 
         // 1. LOGIKA TOGGLE (Sertifikat & Surat Tugas)
         function toggleUploads() {
@@ -467,16 +467,22 @@
 
         // 6. HELPER: Image URL Fixer for PDF
         function getSafeImgUrl(driveUrl) {
-            try {
-                const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
-                if (match && match[1]) {
-                    return `https://lh3.googleusercontent.com/d/${match[1]}`;
-                }
-                return driveUrl; 
-            } catch (e) {
-                return "https://via.placeholder.com/150";
-            }
-        }
+			if (!driveUrl || driveUrl === "" || driveUrl.includes("Error")) {
+				return "https://via.placeholder.com/150";
+			}
+			try {
+				// Mencari ID file dari link
+				const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+				
+				if (match && match[1]) {
+					// PERBAIKAN: Menggunakan endpoint UC yang valid dan sintaks variabel yang benar
+					return `https://lh3.googleusercontent.com/d/${match[1]}=s200`;
+				}
+				return driveUrl;
+			} catch (e) {
+				return "https://via.placeholder.com/150";
+			}
+		}
 
         // 7. HELPER: Download PDF (A4 Full Fix)
         function downloadPDF() {

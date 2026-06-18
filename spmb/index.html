@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPDB Online - UPT SPF SMPN 13 MKS</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* --- STYLE DASAR --- */
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; color: #333; }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+            color: white; padding: 60px 0;
+            border-radius: 0 0 50px 50px; margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card-custom {
+            border: none; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            background: white; overflow: hidden;
+        }
+
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        /* --- PDF STYLE (A4 CENTER) --- */
+        .pdf-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px;
+            background: #555;
+            border-radius: 8px;
+        }
+
+        #printArea {
+            width: 210mm; 
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto;
+            background-color: #ffffff;
+            color: #000000;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        #printArea * {
+            color: #000000 !important;
+            border-color: #000000 !important;
+        }
+
+        .kop-surat { border-bottom: 3px double #000; margin-bottom: 30px; padding-bottom: 15px; }
+        .kop-title { font-size: 24pt; font-weight: 800; text-transform: uppercase; line-height: 1.2; }
+        .kop-subtitle { font-size: 16pt; font-weight: 600; margin-bottom: 5px; }
+        .kop-address { font-size: 10pt; font-style: italic; }
+
+        .judul-bukti {
+            text-align: center; text-transform: uppercase;
+            font-weight: 800; text-decoration: underline;
+            margin-bottom: 40px; font-size: 16pt;
+        }
+
+        .table-bukti td {
+            padding: 12px 5px; font-size: 12pt;
+            vertical-align: top; border-bottom: 1px dotted #ccc !important;
+        }
+        
+        .label-field { font-weight: 600; width: 160px; }
+        
+        .foto-frame {
+            width: 35mm; height: 45mm;
+            border: 1px solid #000 !important;
+            object-fit: cover; display: block; margin: 0 auto;
+        }
+
+        .ttd-area { margin-top: 80px; font-size: 12pt; }
+    </style>
+</head>
+<body>
+
+    <div id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status"></div>
+        <h5 class="mt-3">Sedang Memproses...</h5>
+    </div>
+
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="fw-bold display-5">PPDB Online</h1>
+            <p class="lead">Penerimaan Peserta Didik Baru 2025/2026</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        
+        <div id="loginSection" class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card card-custom p-5 text-center">
+                    <h3 class="fw-bold mb-4 text-primary">Login Siswa</h3>
+                    <p class="text-muted mb-4">Masukkan NISN yang telah didaftarkan oleh sekolah.</p>
+                    
+                    <div class="form-floating mb-3">
+                        <input type="number" class="form-control" id="loginNisn" placeholder="NISN">
+                        <label for="loginNisn">Nomor NISN</label>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 btn-lg rounded-pill fw-bold shadow-sm" onclick="doLogin()">
+                        <i class="fas fa-sign-in-alt me-2"></i> MASUK
+                    </button>
+                    
+                    <div class="mt-3">
+                        <small class="text-danger fst-italic">*Jika NISN belum terdaftar, hubungi Panitia PPDB.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="formSection" class="row justify-content-center d-none">
+            <div class="col-lg-8">
+                <div class="card card-custom p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                        <h4 class="text-primary fw-bold mb-0">Lengkapi Data Diri</h4>
+                        <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                    
+                    <form id="formDaftar" onsubmit="submitForm(event)">
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Jalur Penerimaan <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-lg" name="jalur" id="jalurSelect" onchange="toggleUploads()" required>
+                                <option value="" disabled selected>Pilih Jalur...</option>
+                                <option value="Zonasi">Domisili</option>
+                                <option value="Prestasi Akademik">Prestasi Akademik</option>
+                                <option value="Prestasi Non-Akademik">Prestasi Non-Akademik</option>
+								<option value="Perpindahan Orang Tua">Afirmasi</option>
+                                <option value="Perpindahan Orang Tua">Perpindahan Tugas Orang Tua</option>
+								<option value="Zonasi">Lainnya</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Nama Lengkap</label>
+                                <input type="text" class="form-control" name="nama" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">NISN <small class="text-muted">(Terkunci)</small></label>
+                                <input type="number" class="form-control bg-light" name="nisn" id="formNisn" readonly required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">No. HP / WhatsApp</label>
+                                <input type="text" class="form-control" name="hp" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Asal Sekolah</label>
+                                <input type="text" class="form-control" name="asal" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Aktif</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Alamat Lengkap</label>
+                                <textarea class="form-control" name="alamat" rows="2" required></textarea>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-5 text-primary fw-bold border-bottom pb-2">Upload Dokumen</h5>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Pas Foto</label>
+                                <input type="file" class="form-control" id="fileFoto" accept="image/*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Kartu Keluarga (KK)</label>
+                                <input type="file" class="form-control" id="fileKK" accept=".pdf,image/*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Bukti Lulus / SKL</label>
+                                <input type="file" class="form-control" id="fileLulus" accept=".pdf,image/*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Akta Lahir</label>
+                                <input type="file" class="form-control" id="fileAkta" accept=".pdf,image/*" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ijazah (Opsional)</label>
+                                <input type="file" class="form-control" id="fileIjazah" accept=".pdf,image/*">
+                            </div>
+
+                            <div class="col-md-6 d-none" id="divSertifikat">
+                                <label class="form-label small fw-bold text-success">Sertifikat (Wajib untuk Prestasi)</label>
+                                <input type="file" class="form-control" id="fileSertifikat" accept=".pdf,image/*">
+                            </div>
+
+                            <div class="col-md-6 d-none" id="divSuratTugas">
+                                <label class="form-label small fw-bold text-info">Surat Tugas Ortu/Ket.DTSEN)</label>
+                                <input type="file" class="form-control" id="fileSuratTugas" accept=".pdf,image/*">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill shadow">
+                                <i class="fas fa-paper-plane me-2"></i> SIMPAN & KIRIM DATA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="statusSection" class="row justify-content-center d-none">
+            <div class="col-md-10">
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">Dashboard Siswa</h4>
+                        <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+
+                    <div id="statusAlert" class="alert text-center fw-bold fs-5" role="alert"></div>
+
+                    <p class="text-center small text-muted"><i>Preview Bukti Pendaftaran</i></p>
+                    <div class="pdf-container">
+                        <div id="printArea">
+                            <div class="text-center kop-surat">
+                                <div class="kop-title">PANITIA PPDB 2026</div>
+                                <div class="kop-subtitle">UPT SPF SMPN 13 MAKASSAR</div>
+                                <div class="kop-address">Jl. Tamalate VI No. 2, Perumnas Tamalate. Telp: (0411) 555-7777 <br> Website: www.smpn13makassar.my.id</div>
+                            </div>
+
+                            <div class="judul-bukti">BUKTI PENDAFTARAN RESMI</div>
+
+                            <div class="row mt-4 align-items-start">
+                                <div class="col-4 text-center">
+                                    <img id="resFoto" src="" crossorigin="anonymous" class="foto-frame" alt="Foto Siswa">
+                                    <div class="mt-2 small fst-italic">Foto Calon Siswa</div>
+                                </div>
+                                <div class="col-8">
+                                    <table class="table table-borderless table-bukti">
+                                        <tr><td class="label-field">No. Registrasi</td><td class="fw-bold">: <span id="resId"></span></td></tr>
+                                        <tr><td class="label-field">NISN</td><td class="fw-bold">: <span id="resNisn"></span></td></tr>
+                                        <tr><td class="label-field">Nama Lengkap</td><td>: <span id="resNama" class="text-uppercase fw-bold"></span></td></tr>
+                                        <tr><td class="label-field">Jalur Pilihan</td><td>: <span id="resJalur"></span></td></tr>
+                                        <tr><td class="label-field">Asal Sekolah</td><td>: <span id="resAsal"></span></td></tr>
+                                        <tr><td class="label-field">Status Data</td><td>: <span id="resStatus" class="fw-bold text-uppercase"></span></td></tr>
+                                        <tr><td class="label-field">Jadwal Wawancara</td><td>: <span id="resWawancara" class="fw-bold text-primary"></span></td></tr>
+                                        <tr><td class="label-field">Tanggal Cetak</td><td>: <span id="printDate"></span></td></tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="row ttd-area text-center">
+                                <div class="col-6"><p>Mengetahui,<br>Orang Tua/Wali</p><br><br><br><p>( ................................. )</p></div>
+                                <div class="col-6"><p>Panitia PPDB,<br>Verifikator Berkas</p><br><br><br><p class="fw-bold text-decoration-underline">( ADMINISTRATOR )</p></div>
+                            </div>
+                            
+                            <div class="alert alert-light border-dark mt-5 text-center small fst-italic" style="border-style: dashed !important;">
+                                Dokumen ini diterbitkan secara elektronik. Simpan sebagai syarat daftar ulang.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-success w-100 py-3 fw-bold shadow" id="btnDownload" disabled onclick="downloadPDF()">
+                            <i class="fas fa-file-pdf fa-lg me-2"></i> DOWNLOAD BUKTI (PDF)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6sBK8O96oGV-nLOBhBDlsqyHA1Zdjcz9kQ6bQyj4BXD5o-HYbYEyQKRK8vWcECqwH/exec"; 
+
+        // 1. LOGIKA TOGGLE (Sertifikat & Surat Tugas)
+        function toggleUploads() {
+            const jalur = document.getElementById('jalurSelect').value;
+            
+            // Elements
+            const divSertif = document.getElementById('divSertifikat');
+            const fileSertif = document.getElementById('fileSertifikat');
+            const divSurat = document.getElementById('divSuratTugas');
+            const fileSurat = document.getElementById('fileSuratTugas');
+
+            // Reset (Hide All)
+            divSertif.classList.add('d-none');
+            fileSertif.required = false;
+            divSurat.classList.add('d-none');
+            fileSurat.required = false;
+
+            // Logic Check
+            if (jalur.includes('Prestasi')) {
+                divSertif.classList.remove('d-none');
+                fileSertif.required = true;
+            } 
+            else if (jalur === 'Perpindahan Orang Tua') {
+                divSurat.classList.remove('d-none');
+                fileSurat.required = true;
+            }
+        }
+
+        // 2. FUNGSI LOGIN
+        async function doLogin() {
+            const nisn = document.getElementById('loginNisn').value;
+            if(!nisn) return Swal.fire('Perhatian', 'Harap masukkan Nomor NISN', 'warning');
+
+            Swal.showLoading();
+            
+            try {
+                // Fetch check login
+                const response = await fetch(`${SCRIPT_URL}?action=login_check&nisn=${nisn}`);
+                const json = await response.json();
+                Swal.close();
+
+                if (json.status === 'open') {
+                    // NISN ada, tapi belum isi data -> Buka Form
+                    document.getElementById('loginSection').classList.add('d-none');
+                    document.getElementById('formSection').classList.remove('d-none');
+                    document.getElementById('formNisn').value = json.data.nisn; // Auto-fill NISN
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Selamat Datang',
+                        text: 'Silakan lengkapi formulir pendaftaran Anda.'
+                    });
+
+                } else if (json.status === 'registered') {
+                    // Sudah isi data -> Buka Dashboard
+                    showStatusDashboard(json.data);
+                    
+                } else {
+                    Swal.fire('Gagal', 'NISN tidak ditemukan. Hubungi Admin Sekolah.', 'error');
+                }
+
+            } catch(e) {
+                Swal.fire('Error', 'Gagal terhubung ke server. Periksa koneksi internet.', 'error');
+            }
+        }
+
+        // 3. FUNGSI SUBMIT FORM (Kirim Semua Data)
+        async function submitForm(e) {
+            e.preventDefault();
+
+            // Cek Ukuran File (Max 2MB)
+            const inputs = document.querySelectorAll('input[type="file"]');
+            for (let input of inputs) {
+                if (input.files.length > 0 && input.files[0].size > 2 * 1024 * 1024) {
+                    return Swal.fire('File Terlalu Besar', `File ${input.files[0].name} melebihi 2MB`, 'warning');
+                }
+            }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            try {
+                const f = document.forms['formDaftar'];
+                
+                const payload = {
+                    action: "register",
+                    nisn: document.getElementById('formNisn').value, // Ambil dari readonly
+                    jalur: f.jalur.value, 
+                    nama: f.nama.value,
+                    hp: f.hp.value, 
+                    asal: f.asal.value, 
+                    email: f.email.value, 
+                    alamat: f.alamat.value,
+                    files: {
+                        foto: await getFile('fileFoto'), 
+                        kk: await getFile('fileKK'),
+                        lulus: await getFile('fileLulus'), 
+                        ijazah: await getFile('fileIjazah'),
+                        akta: await getFile('fileAkta'), 
+                        sertifikat: await getFile('fileSertifikat'),
+                        surat_tugas: await getFile('fileSuratTugas') // Upload Surat Tugas
+                    }
+                };
+
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const json = await res.json();
+                
+                document.getElementById('loadingOverlay').style.display = 'none';
+
+                if (json.status === 'success') {
+                    Swal.fire('Sukses!', 'Data berhasil disimpan.', 'success').then(() => {
+                        location.reload(); // Reload agar user login ulang dan lihat dashboard
+                    });
+                } else {
+                    Swal.fire('Gagal', json.message, 'error');
+                }
+            } catch (err) {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                Swal.fire('Error', 'Terjadi kesalahan jaringan.', 'error');
+            }
+        }
+
+        // 4. HELPER: TAMPILKAN DASHBOARD
+        function showStatusDashboard(data) {
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('statusSection').classList.remove('d-none');
+
+            // Isi Data Teks
+            document.getElementById('resId').innerText = data.id;
+            document.getElementById('resNama').innerText = data.nama;
+            document.getElementById('resNisn').innerText = data.nisn;
+            document.getElementById('resJalur').innerText = data.jalur;
+            document.getElementById('resAsal').innerText = data.asal;
+            document.getElementById('resStatus').innerText = data.status;
+            document.getElementById('resWawancara').innerText = data.wawancara ? data.wawancara : 'Belum Dijadwalkan';
+            document.getElementById('printDate').innerText = new Date().toLocaleDateString('id-ID');
+            
+            // Isi Foto
+            document.getElementById('resFoto').src = getSafeImgUrl(data.foto);
+
+            // Logic Status & Button
+            const alertBox = document.getElementById('statusAlert');
+            const btn = document.getElementById('btnDownload');
+
+            if (data.status === 'Disetujui') {
+                alertBox.className = 'alert alert-success fw-bold';
+                alertBox.innerHTML = '<i class="fas fa-check-circle me-2"></i> SELAMAT! Pendaftaran Anda DISETUJUI.';
+                btn.disabled = false;
+            } else if (data.status === 'Ditolak') {
+                alertBox.className = 'alert alert-danger fw-bold';
+                alertBox.innerHTML = '<i class="fas fa-times-circle me-2"></i> MOHON MAAF. Pendaftaran Anda DITOLAK.';
+                btn.disabled = true;
+            } else {
+                alertBox.className = 'alert alert-warning fw-bold';
+                alertBox.innerHTML = '<i class="fas fa-clock me-2"></i> Pendaftaran sedang dalam proses VERIFIKASI.';
+                btn.disabled = true;
+            }
+        }
+
+        // 5. HELPER: File Reader
+        const getFile = async (id) => {
+            const input = document.getElementById(id);
+            if (input.files.length > 0) {
+                return { 
+                    data: await new Promise(r => {
+                        let reader = new FileReader();
+                        reader.onload = () => r(reader.result);
+                        reader.readAsDataURL(input.files[0]);
+                    }), 
+                    mime: input.files[0].type 
+                };
+            }
+            return null;
+        };
+
+        // 6. HELPER: Image URL Fixer for PDF
+        function getSafeImgUrl(driveUrl) {
+            try {
+                const match = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    return `https://lh3.googleusercontent.com/d/${match[1]}`;
+                }
+                return driveUrl; 
+            } catch (e) {
+                return "https://via.placeholder.com/150";
+            }
+        }
+
+        // 7. HELPER: Download PDF (A4 Full Fix)
+        function downloadPDF() {
+            const element = document.getElementById('printArea');
+            const nisn = document.getElementById('resNisn').innerText;
+            
+            const opt = {
+                margin: 0, 
+                filename: `Bukti_PPDB_${nisn}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0, 
+                    windowWidth: 1200 // Paksa lebar desktop agar layout stabil
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            Swal.fire({
+                title: 'Menyiapkan PDF...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading() }
+            });
+
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    Swal.close();
+                });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

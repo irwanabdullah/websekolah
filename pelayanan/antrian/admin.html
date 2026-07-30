@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Admin Antrean | UPT SPF SMP Negeri 13 Makassar</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+<style>
+
+body{
+    background:#eef2f7;
+    font-family:'Segoe UI',sans-serif;
+}
+
+.navbar{
+    background:#0B2E59;
+}
+
+.navbar-brand{
+    color:white !important;
+    font-weight:bold;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,.15);
+}
+
+.nomor{
+
+font-size:70px;
+
+font-weight:bold;
+
+color:#0B2E59;
+
+}
+
+.footer{
+
+background:#0B2E59;
+
+color:white;
+
+text-align:center;
+
+padding:20px;
+
+margin-top:40px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav class="navbar">
+
+<div class="container">
+
+<a class="navbar-brand" href="index.html">
+
+<i class="fa-solid fa-user-gear"></i>
+
+ADMIN ANTREAN
+
+</a>
+
+</div>
+
+</nav>
+
+<div class="container mt-4">
+
+<div class="row">
+
+<div class="col-md-4">
+
+<div class="card p-3 bg-primary text-white">
+
+<h5>Total Antrean</h5>
+
+<h2 id="total">0</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card p-3 bg-success text-white">
+
+<h5>Menunggu</h5>
+
+<h2 id="menunggu">0</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card p-3 bg-warning text-dark">
+
+<h5>Sedang Dipanggil</h5>
+
+<h2 id="dipanggil">-</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card mt-4 p-4">
+
+<h3 class="text-center">
+
+Nomor Saat Ini
+
+</h3>
+
+<div class="nomor text-center" id="nomorSekarang">
+
+-
+
+</div>
+
+<div class="text-center mt-3">
+
+<button class="btn btn-success btn-lg"
+onclick="panggilBerikutnya()">
+
+<i class="fa fa-volume-high"></i>
+
+Panggil Berikutnya
+
+</button>
+
+<button class="btn btn-warning btn-lg"
+onclick="panggilUlang()">
+
+Panggil Ulang
+
+</button>
+
+<button class="btn btn-primary btn-lg"
+onclick="selesai()">
+
+Selesai
+
+</button>
+
+<button class="btn btn-danger btn-lg"
+onclick="resetAntrean()">
+
+Reset
+
+</button>
+
+</div>
+
+</div>
+
+<div class="card mt-4">
+
+<div class="card-header bg-dark text-white">
+
+Daftar Antrean
+
+</div>
+
+<div class="table-responsive">
+
+<table class="table table-striped table-hover mb-0">
+
+<thead>
+
+<tr>
+
+<th>No</th>
+
+<th>Nomor</th>
+
+<th>Layanan</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="data">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<footer class="footer">
+
+UPT SPF SMP Negeri 13 Makassar
+
+<br>
+
+©2026
+
+</footer>
+
+<script>
+
+let antrean=JSON.parse(localStorage.getItem("antrean"))||[];
+
+let current=localStorage.getItem("current")||"-";
+
+function refresh(){
+
+document.getElementById("total").innerHTML=antrean.length;
+
+document.getElementById("menunggu").innerHTML=antrean.length;
+
+document.getElementById("dipanggil").innerHTML=current;
+
+document.getElementById("nomorSekarang").innerHTML=current;
+
+let html="";
+
+antrean.forEach((a,i)=>{
+
+html+=`
+
+<tr>
+
+<td>${i+1}</td>
+
+<td><strong>${a.nomor}</strong></td>
+
+<td>${a.layanan}</td>
+
+<td>
+
+<span class="badge bg-warning">
+
+${a.status}
+
+</span>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("data").innerHTML=html;
+
+}
+
+function panggilBerikutnya(){
+
+if(antrean.length==0){
+
+alert("Tidak ada antrean.");
+
+return;
+
+}
+
+current=antrean[0].nomor;
+
+document.getElementById("nomorSekarang").innerHTML=current;
+
+document.getElementById("dipanggil").innerHTML=current;
+
+localStorage.setItem("current",current);
+
+let suara=new SpeechSynthesisUtterance(
+
+"Nomor antrean "+current+
+
+", silakan menuju loket pelayanan."
+
+);
+
+speechSynthesis.speak(suara);
+
+}
+
+function panggilUlang(){
+
+if(current=="-") return;
+
+speechSynthesis.speak(
+
+new SpeechSynthesisUtterance(
+
+"Nomor antrean "+current+
+
+", silakan menuju loket pelayanan."
+
+));
+
+}
+
+function selesai(){
+
+if(antrean.length==0) return;
+
+antrean.shift();
+
+localStorage.setItem("antrean",
+
+JSON.stringify(antrean));
+
+current="-";
+
+localStorage.setItem("current","-");
+
+refresh();
+
+}
+
+function resetAntrean(){
+
+if(confirm("Reset semua antrean?")){
+
+localStorage.removeItem("antrean");
+
+localStorage.removeItem("counter");
+
+localStorage.removeItem("current");
+
+antrean=[];
+
+current="-";
+
+refresh();
+
+}
+
+}
+
+refresh();
+
+setInterval(function(){
+
+antrean=JSON.parse(localStorage.getItem("antrean"))||[];
+
+current=localStorage.getItem("current")||"-";
+
+refresh();
+
+},1000);
+
+</script>
+
+</body>
+</html>

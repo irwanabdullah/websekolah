@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Aplikasi Nomor Antrean | UPT SPF SMP Negeri 13 Makassar</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+<style>
+
+body{
+    background:#eef2f7;
+    font-family:'Segoe UI',sans-serif;
+}
+
+.navbar{
+    background:#0B2E59;
+}
+
+.navbar-brand{
+    color:white !important;
+    font-weight:bold;
+}
+
+.hero{
+    background:linear-gradient(135deg,#0B2E59,#1b4f91);
+    color:white;
+    padding:60px 20px;
+    text-align:center;
+}
+
+.hero h1{
+    font-weight:bold;
+}
+
+.card-menu{
+    border:none;
+    border-radius:18px;
+    transition:.3s;
+    box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.card-menu:hover{
+    transform:translateY(-8px);
+}
+
+.icon{
+    font-size:55px;
+    color:#0B2E59;
+}
+
+.stat{
+    border:none;
+    border-radius:15px;
+    color:white;
+}
+
+.footer{
+    background:#0B2E59;
+    color:white;
+    margin-top:50px;
+    padding:20px;
+    text-align:center;
+}
+
+#jam{
+    font-size:18px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+
+<div class="container">
+
+<a class="navbar-brand" href="#">
+<i class="fa-solid fa-ticket"></i>
+APLIKASI ANTREAN
+</a>
+
+</div>
+
+</nav>
+
+<section class="hero">
+
+<h1>UPT SPF SMP NEGERI 13 MAKASSAR</h1>
+
+<h4>Aplikasi Nomor Antrean Pelayanan Publik</h4>
+
+<br>
+
+<div id="jam"></div>
+
+</section>
+
+<div class="container mt-5">
+
+<div class="row g-4">
+
+<div class="col-md-4">
+
+<div class="card stat bg-primary p-4">
+
+<h5>Total Antrean Hari Ini</h5>
+
+<h1 id="total">0</h1>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card stat bg-success p-4">
+
+<h5>Sudah Dilayani</h5>
+
+<h1 id="selesai">0</h1>
+
+</div>
+
+</div>
+
+<div class="col-md-4">
+
+<div class="card stat bg-warning p-4">
+
+<h5>Menunggu</h5>
+
+<h1 id="menunggu">0</h1>
+
+</div>
+
+</div>
+
+</div>
+
+<hr class="my-5">
+
+<div class="row g-4">
+
+<div class="col-lg-3">
+
+<div class="card card-menu text-center p-4">
+
+<div class="icon">
+
+<i class="fa-solid fa-ticket-simple"></i>
+
+</div>
+
+<h4>Ambil Nomor</h4>
+
+<p>Masyarakat mengambil nomor antrean.</p>
+
+<a href="ambil.html" class="btn btn-primary">
+
+Masuk
+
+</a>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="card card-menu text-center p-4">
+
+<div class="icon">
+
+<i class="fa-solid fa-user-gear"></i>
+
+</div>
+
+<h4>Admin</h4>
+
+<p>Petugas memanggil nomor antrean.</p>
+
+<a href="admin.html" class="btn btn-success">
+
+Masuk
+
+</a>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="card card-menu text-center p-4">
+
+<div class="icon">
+
+<i class="fa-solid fa-tv"></i>
+
+</div>
+
+<h4>Display</h4>
+
+<p>Layar monitor ruang tunggu.</p>
+
+<a href="display.html" class="btn btn-warning">
+
+Buka
+
+</a>
+
+</div>
+
+</div>
+
+<div class="col-lg-3">
+
+<div class="card card-menu text-center p-4">
+
+<div class="icon">
+
+<i class="fa-solid fa-chart-column"></i>
+
+</div>
+
+<h4>Laporan</h4>
+
+<p>Rekap statistik antrean.</p>
+
+<button class="btn btn-secondary">
+
+Segera Hadir
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card mt-5 shadow">
+
+<div class="card-header bg-dark text-white">
+
+Informasi Pelayanan
+
+</div>
+
+<div class="card-body">
+
+<table class="table table-bordered">
+
+<tr>
+
+<th width="30%">Jam Pelayanan</th>
+
+<td>08.00 - 15.00 WITA</td>
+
+</tr>
+
+<tr>
+
+<th>Hari Pelayanan</th>
+
+<td>Senin - Jumat</td>
+
+</tr>
+
+<tr>
+
+<th>Alamat</th>
+
+<td>Jl. Tamalate VI No.24 Makassar</td>
+
+</tr>
+
+<tr>
+
+<th>Status Sistem</th>
+
+<td><span class="badge bg-success">ONLINE</span></td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<footer class="footer">
+
+<h5>UPT SPF SMP Negeri 13 Makassar</h5>
+
+Portal Aplikasi Nomor Antrean © 2026
+
+</footer>
+
+<script>
+
+function updateJam(){
+
+let sekarang=new Date();
+
+document.getElementById("jam").innerHTML=
+
+sekarang.toLocaleDateString('id-ID')+
+
+" | "+sekarang.toLocaleTimeString('id-ID');
+
+}
+
+setInterval(updateJam,1000);
+
+updateJam();
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

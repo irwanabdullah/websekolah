@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Pengaduan Masyarakat | UPT SPF SMP Negeri 13 Makassar</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+<style>
+
+body{
+    background:#f4f7fb;
+    font-family:Segoe UI,sans-serif;
+}
+
+.navbar{
+    background:#0B2E59;
+}
+
+.navbar-brand,
+.nav-link{
+    color:white !important;
+}
+
+.hero{
+    background:#0B2E59;
+    color:white;
+    text-align:center;
+    padding:50px;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.footer{
+    margin-top:40px;
+    background:#0B2E59;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+textarea{
+    resize:none;
+}
+
+.info-box{
+    background:#eef5ff;
+    border-left:5px solid #0B2E59;
+    padding:15px;
+    margin-bottom:20px;
+    border-radius:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+
+<div class="container">
+
+<a class="navbar-brand" href="index.html">
+
+<i class="fa-solid fa-school"></i>
+
+UPT SPF SMP Negeri 13 Makassar
+
+</a>
+
+<div class="ms-auto">
+
+<a href="index.html" class="nav-link d-inline">Beranda</a>
+
+</div>
+
+</div>
+
+</nav>
+
+<section class="hero">
+
+<h2>
+
+<i class="fa-solid fa-comments"></i>
+
+ Layanan Pengaduan Masyarakat
+
+</h2>
+
+<p>
+
+Sampaikan kritik, saran, maupun pengaduan terkait pelayanan publik.
+
+</p>
+
+</section>
+
+<div class="container mt-4">
+
+<div class="info-box">
+
+<b>Informasi</b>
+
+<br>
+
+Silakan mengisi formulir berikut secara lengkap dan benar.
+Setiap pengaduan akan ditindaklanjuti oleh Tim Pelayanan Publik UPT SPF SMP Negeri 13 Makassar.
+
+</div>
+
+<div class="card p-4">
+
+<form id="formPengaduan">
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label>Nama Lengkap</label>
+
+<input type="text" class="form-control" id="nama" required>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>Email</label>
+
+<input type="email" class="form-control" id="email">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>Nomor HP / WhatsApp</label>
+
+<input type="text" class="form-control" id="hp">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>Jenis Layanan</label>
+
+<select class="form-select" id="layanan">
+
+<option>Surat Keterangan Aktif</option>
+
+<option>Legalisasi Ijazah</option>
+
+<option>Mutasi Masuk</option>
+
+<option>Mutasi Keluar</option>
+
+<option>Informasi Publik</option>
+
+<option>Pelayanan Tata Usaha</option>
+
+<option>Perpustakaan</option>
+
+<option>Bimbingan Konseling</option>
+
+<option>Sarana dan Prasarana</option>
+
+<option>Lainnya</option>
+
+</select>
+
+</div>
+
+<div class="col-12 mb-3">
+
+<label>Judul Pengaduan</label>
+
+<input type="text" class="form-control" id="judul" required>
+
+</div>
+
+<div class="col-12 mb-3">
+
+<label>Isi Pengaduan</label>
+
+<textarea class="form-control" rows="6" id="isi" required></textarea>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>Upload Bukti (Opsional)</label>
+
+<input type="file" class="form-control">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label>Tanggal Pengaduan</label>
+
+<input type="date" class="form-control" id="tanggal">
+
+</div>
+
+</div>
+
+<div class="text-center">
+
+<button type="submit" class="btn btn-success">
+
+<i class="fa-solid fa-paper-plane"></i>
+
+ Kirim Pengaduan
+
+</button>
+
+<button type="reset" class="btn btn-secondary">
+
+Reset
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+<div class="card mt-4 p-4">
+
+<h4>
+
+<i class="fa-solid fa-circle-info"></i>
+
+ Informasi Pengaduan
+
+</h4>
+
+<table class="table">
+
+<tr>
+
+<td width="30%"><b>Jam Pelayanan</b></td>
+
+<td>Senin - Jumat, 08.00 - 15.00 WITA</td>
+
+</tr>
+
+<tr>
+
+<td><b>Email</b></td>
+
+<td>smpn13@makassar.go.id</td>
+
+</tr>
+
+<tr>
+
+<td><b>Telepon</b></td>
+
+<td>(0411) XXXXXXX</td>
+
+</tr>
+
+<tr>
+
+<td><b>Alamat</b></td>
+
+<td>Jl. Tamalate VI No.24 Makassar</td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+<footer class="footer">
+
+<h5>UPT SPF SMP Negeri 13 Makassar</h5>
+
+<p>
+
+Portal Pelayanan Publik © 2025
+
+</p>
+
+</footer>
+
+<script>
+
+document.getElementById("tanggal").valueAsDate=new Date();
+
+document.getElementById("formPengaduan").addEventListener("submit",function(e){
+
+e.preventDefault();
+
+let nama=document.getElementById("nama").value;
+
+let layanan=document.getElementById("layanan").value;
+
+alert(
+
+"Terima kasih, "+nama+
+
+"\\n\\nPengaduan Anda mengenai '"+layanan+
+
+"' telah diterima.\\n\\nTim Pelayanan Publik akan melakukan verifikasi dan menindaklanjuti laporan Anda."
+
+);
+
+this.reset();
+
+document.getElementById("tanggal").valueAsDate=new Date();
+
+});
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Survei Kepuasan Masyarakat (SKM)</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+<style>
+
+body{
+    background:#f4f7fb;
+    font-family:Segoe UI,sans-serif;
+}
+
+.navbar{
+    background:#0B2E59;
+}
+
+.navbar-brand,
+.nav-link{
+    color:white !important;
+}
+
+.hero{
+    background:#0B2E59;
+    color:white;
+    padding:40px;
+    text-align:center;
+}
+
+.card{
+    border:none;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.footer{
+    margin-top:40px;
+    background:#0B2E59;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
+
+.result{
+    font-size:22px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg">
+
+<div class="container">
+
+<a class="navbar-brand" href="index.html">
+
+<i class="fa-solid fa-school"></i>
+
+UPT SPF SMP Negeri 13 Makassar
+
+</a>
+
+<div class="ms-auto">
+
+<a class="nav-link d-inline" href="index.html">Beranda</a>
+
+</div>
+
+</div>
+
+</nav>
+
+<section class="hero">
+
+<h2>Survei Kepuasan Masyarakat (SKM)</h2>
+
+<p>Pelayanan Publik UPT SPF SMP Negeri 13 Makassar</p>
+
+</section>
+
+<div class="container mt-4">
+
+<div class="card p-4">
+
+<h4>Identitas Responden</h4>
+
+<div class="row">
+
+<div class="col-md-6">
+
+<label>Nama</label>
+
+<input type="text" class="form-control">
+
+</div>
+
+<div class="col-md-6">
+
+<label>Jenis Layanan</label>
+
+<select class="form-select">
+
+<option>Surat Aktif</option>
+
+<option>Legalisasi Ijazah</option>
+
+<option>Mutasi Masuk</option>
+
+<option>Mutasi Keluar</option>
+
+<option>Informasi Publik</option>
+
+<option>Pengaduan</option>
+
+<option>Tata Usaha</option>
+
+<option>Perpustakaan</option>
+
+<option>BK</option>
+
+<option>Sarana Prasarana</option>
+
+</select>
+
+</div>
+
+</div>
+
+<hr>
+
+<h4>Penilaian Pelayanan</h4>
+
+<p>Pilih nilai 1 sampai 4.</p>
+
+<table class="table table-bordered">
+
+<thead class="table-primary">
+
+<tr>
+
+<th>No</th>
+
+<th>Unsur Pelayanan</th>
+
+<th>Nilai</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tabelSKM">
+
+</tbody>
+
+</table>
+
+<div class="mb-3">
+
+<label>Saran dan Masukan</label>
+
+<textarea class="form-control" rows="4"></textarea>
+
+</div>
+
+<div class="text-center">
+
+<button class="btn btn-success" onclick="hitung()">
+
+<i class="fa-solid fa-calculator"></i>
+
+ Hitung Nilai SKM
+
+</button>
+
+<button class="btn btn-secondary" onclick="location.reload()">
+
+Reset
+
+</button>
+
+</div>
+
+<hr>
+
+<div class="text-center">
+
+<div class="result">
+
+Nilai Rata-rata :
+
+<span id="nilai">0</span>
+
+</div>
+
+<br>
+
+<div class="result">
+
+Kategori :
+
+<span id="kategori" class="text-primary">
+
+-
+
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<footer class="footer">
+
+UPT SPF SMP Negeri 13 Makassar
+
+<br>
+
+© 2025 Portal Pelayanan Publik
+
+</footer>
+
+<script>
+
+const unsur=[
+
+"Persyaratan",
+
+"Sistem, Mekanisme dan Prosedur",
+
+"Waktu Penyelesaian",
+
+"Biaya / Tarif",
+
+"Produk Pelayanan",
+
+"Kompetensi Pelaksana",
+
+"Perilaku Pelaksana",
+
+"Penanganan Pengaduan",
+
+"Sarana dan Prasarana"
+
+];
+
+let html="";
+
+unsur.forEach((u,i)=>{
+
+html+=`
+
+<tr>
+
+<td>${i+1}</td>
+
+<td>${u}</td>
+
+<td>
+
+<select class="form-select nilai">
+
+<option value="1">1 - Tidak Baik</option>
+
+<option value="2">2 - Kurang Baik</option>
+
+<option value="3">3 - Baik</option>
+
+<option value="4" selected>4 - Sangat Baik</option>
+
+</select>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("tabelSKM").innerHTML=html;
+
+function hitung(){
+
+let nilai=document.querySelectorAll(".nilai");
+
+let total=0;
+
+nilai.forEach(n=>{
+
+total+=parseInt(n.value);
+
+});
+
+let rata=(total/nilai.length).toFixed(2);
+
+document.getElementById("nilai").innerHTML=rata;
+
+let kategori="";
+
+if(rata>=3.50){
+
+kategori="Sangat Baik (A)";
+
+}else if(rata>=3){
+
+kategori="Baik (B)";
+
+}else if(rata>=2){
+
+kategori="Kurang Baik (C)";
+
+}else{
+
+kategori="Tidak Baik (D)";
+
+}
+
+document.getElementById("kategori").innerHTML=kategori;
+
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
